@@ -1,0 +1,167 @@
+"""
+One-command demo seeding so graders open the live URL to a populated app.
+
+    python manage.py seed_demo           # create/refresh demo data
+    python manage.py seed_demo --clear   # remove all demo data
+
+Creates: 1 admin, 2 approved officers + 1 pending, ~5 Toyota-style cars,
+the 3 default slabs, and a pre-filled month for one officer.
+"""
+from datetime import date
+from decimal import Decimal
+
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from accounts.models import AccountStatus, Role
+from incentives.models import IncentiveSlab
+from inventory.models import CarModel
+from sales.models import MonthlySalesEntry, SalesLine
+
+User = get_user_model()
+
+CARS = [
+    {"model_name": "Toyota Glanza", "base_suffix": "GLZ", "variant": "V CVT"},
+    {"model_name": "Toyota Urban Cruiser", "base_suffix": "URC", "variant": "Hyryder G"},
+    {"model_name": "Toyota Innova Crysta", "base_suffix": "INV", "variant": "ZX AT"},
+    {"model_name": "Toyota Fortuner", "base_suffix": "FRT", "variant": "Legender 4x4"},
+    {"model_name": "Toyota Camry", "base_suffix": "CAM", "variant": "Hybrid"},
+]
+
+SLABS = [
+    {"min_cars": 1, "max_cars": 3, "rate_per_car": Decimal("1000")},
+    {"min_cars": 4, "max_cars": 7, "rate_per_car": Decimal("2000")},
+    {"min_cars": 8, "max_cars": None, "rate_per_car": Decimal("3500")},
+]
+
+OFFICERS = [
+    {"email": "ravi.officer@nippon.test", "first_name": "Ravi", "last_name": "Kumar",
+     "employee_code": "SO-101", "status": AccountStatus.APPROVED},
+    {"email": "meera.officer@nippon.test", "first_name": "Meera", "last_name": "Nair",
+     "employee_code": "SO-102", "status": AccountStatus.APPROVED},
+    {"email": "pending.officer@nippon.test", "first_name": "Arjun", "last_name": "Das",
+     "employee_code": "SO-103", "status": AccountStatus.PENDING},
+]
+
+OFFICER_PASSWORD = "Officer@12345"
+
+
+class Command(BaseCommand):
+    help = "Seed demo data for the incentive calculator."
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--clear", action="store_true", help="Delete all demo data and exit."
+        )
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        if options["clear"]:
+            self._clear()
+            self.stdout.write(self.style.WARNING("Demo data cleared."))
+            return
+
+        admin = self._seed_admin()
+        self._seed_cars()
+        self._seed_slabs()
+        officers = self._seed_officers()
+        self._seed_prefilled_month(officers[0])
+
+        self.stdout.write(self.style.SUCCESS("\nDemo data seeded successfully.\n"))
+        self.stdout.write("Demo credentials:")
+        self.stdout.write(
+            f"  Admin    → {admin.email} / {settings.DEMO_ADMIN_PASSWORD}"
+        )
+        for o in OFFICERS:
+            tag = "(pending)" if o["status"] == AccountStatus.PENDING else "(approved)"
+            self.stdout.write(f"  Officer  → {o['email']} / {OFFICER_PASSWORD} {tag}")
+
+    # --- steps ------------------------------------------------------------
+    def _clear(self):
+        SalesLine.objects.all().delete()
+        MonthlySalesEntry.objects.all().delete()
+        IncentiveSlab.objects.all().delete()
+        CarModel.objects.all().delete()
+        User.objects.filter(email__endswith="@nippon.test").delete()
+
+    def _seed_admin(self):
+        admin, created = User.objects.get_or_create(
+            email=settings.DEMO_ADMIN_EMAIL,
+            defaults={
+                "username": settings.DEMO_ADMIN_EMAIL,
+                "first_name": "Nippon",
+                "last_name": "Admin",
+                "role": Role.ADMIN,
+                "status": AccountStatus.APPROVED,
+                "is_staff": True,
+                "is_superuser": True,
+            },
+        )
+        # Always (re)set the documented password so the demo login is reliable.
+        admin.set_password(settings.DEMO_ADMIN_PASSWORD)
+        admin.role = Role.ADMIN
+        admin.status = AccountStatus.APPROVED
+        admin.is_staff = True
+        admin.is_superuser = True
+        admin.save()
+        self.stdout.write(f"  admin: {'created' if created else 'updated'}")
+        return admin
+
+    def _seed_cars(self):
+        for car in CARS:
+            CarModel.objects.update_or_create(
+                model_name=car["model_name"],
+                variant=car["variant"],
+                defaults={"base_suffix": car["base_suffix"], "is_active": True},
+            )
+        self.stdout.write(f"  cars: {CarModel.objects.count()} total")
+
+    def _seed_slabs(self):
+        IncentiveSlab.objects.all().delete()
+        IncentiveSlab.objects.bulk_create(
+            [IncentiveSlab(**s) for s in SLABS]
+        )
+        self.stdout.write(f"  slabs: {IncentiveSlab.objects.count()} total")
+
+    def _seed_officers(self):
+        created = []
+        for o in OFFICERS:
+            user, _ = User.objects.get_or_create(
+                email=o["email"],
+                defaults={
+                    "username": o["email"],
+                    "first_name": o["first_name"],
+                    "last_name": o["last_name"],
+                    "employee_code": o["employee_code"],
+                    "role": Role.SALES_OFFICER,
+                    "status": o["status"],
+                },
+            )
+            user.set_password(OFFICER_PASSWORD)
+            user.role = Role.SALES_OFFICER
+            user.status = o["status"]
+            user.save()
+            created.append(user)
+        self.stdout.write(f"  officers: {len(created)} (2 approved, 1 pending)")
+        return created
+
+    def _seed_prefilled_month(self, officer):
+        today = date.today()
+        entry, _ = MonthlySalesEntry.objects.get_or_create(
+            sales_officer=officer, month=today.month, year=today.year
+        )
+        entry.lines.all().delete()
+        cars = list(CarModel.objects.all()[:3])
+        volumes = [3, 1, 1]  # total 5 → lands in the 4–7 @ 2000 tier = 10,000
+        SalesLine.objects.bulk_create(
+            [
+                SalesLine(entry=entry, car_model=car, cars_sold=vol)
+                for car, vol in zip(cars, volumes)
+            ]
+        )
+        self.stdout.write(
+            f"  prefilled month: {officer.email} {today.month:02d}/{today.year} "
+            f"(5 cars → ₹10,000)"
+        )
