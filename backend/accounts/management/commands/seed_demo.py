@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from accounts.models import AccountStatus, Role
+from accounts.models import AccountStatus, DemoCredential, Role
 from incentives.models import IncentiveSlab
 from inventory.models import CarModel
 from sales.models import MonthlySalesEntry, SalesLine
@@ -45,9 +45,6 @@ OFFICERS = [
      "employee_code": "SO-103", "status": AccountStatus.PENDING},
 ]
 
-OFFICER_PASSWORD = "Officer@12345"
-
-
 class Command(BaseCommand):
     help = "Seed demo data for the incentive calculator."
 
@@ -67,16 +64,17 @@ class Command(BaseCommand):
         self._seed_cars()
         self._seed_slabs()
         officers = self._seed_officers()
+        demo_officer = self._seed_demo_credentials(admin, officers)
         self._seed_prefilled_month(officers[0])
 
         self.stdout.write(self.style.SUCCESS("\nDemo data seeded successfully.\n"))
-        self.stdout.write("Demo credentials:")
+        self.stdout.write("UI demo credentials:")
         self.stdout.write(
             f"  Admin    → {admin.email} / {settings.DEMO_ADMIN_PASSWORD}"
         )
-        for o in OFFICERS:
-            tag = "(pending)" if o["status"] == AccountStatus.PENDING else "(approved)"
-            self.stdout.write(f"  Officer  → {o['email']} / {OFFICER_PASSWORD} {tag}")
+        self.stdout.write(
+            f"  Officer  → {demo_officer.email} / {settings.DEMO_OFFICER_PASSWORD}"
+        )
 
     # --- steps ------------------------------------------------------------
     def _clear(self):
@@ -139,13 +137,48 @@ class Command(BaseCommand):
                     "status": o["status"],
                 },
             )
-            user.set_password(OFFICER_PASSWORD)
+            user.set_password(settings.DEMO_OFFICER_PASSWORD)
+            user.first_name = o["first_name"]
+            user.last_name = o["last_name"]
+            user.employee_code = o["employee_code"]
             user.role = Role.SALES_OFFICER
             user.status = o["status"]
+            user.username = user.email
             user.save()
             created.append(user)
         self.stdout.write(f"  officers: {len(created)} (2 approved, 1 pending)")
         return created
+
+    def _seed_demo_credentials(self, admin, officers):
+        demo_officer = next(
+            (
+                officer
+                for officer in officers
+                if officer.email == settings.DEMO_OFFICER_EMAIL
+                and officer.status == AccountStatus.APPROVED
+            ),
+            officers[0],
+        )
+        DemoCredential.objects.update_or_create(
+            user=admin,
+            defaults={
+                "label": "Administrator",
+                "display_password": settings.DEMO_ADMIN_PASSWORD,
+                "is_active": True,
+                "sort_order": 1,
+            },
+        )
+        DemoCredential.objects.update_or_create(
+            user=demo_officer,
+            defaults={
+                "label": "Sales Officer",
+                "display_password": settings.DEMO_OFFICER_PASSWORD,
+                "is_active": True,
+                "sort_order": 2,
+            },
+        )
+        self.stdout.write("  demo credentials: admin + sales officer")
+        return demo_officer
 
     def _seed_prefilled_month(self, officer):
         today = date.today()

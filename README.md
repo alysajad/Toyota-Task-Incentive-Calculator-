@@ -24,6 +24,7 @@ A role-based web app that computes **tiered, slab-wise monthly incentives** for 
 |---|---|
 | API | Django 5.2 · Django REST Framework · SimpleJWT |
 | DB | PostgreSQL (via `DATABASE_URL`) — falls back to **SQLite** locally with zero setup |
+| Cache | Django cache framework · Redis via `CACHE_URL` in production · local-memory fallback in dev |
 | SPA | React 19 · Vite · Tailwind CSS · Framer Motion · React Router · Axios |
 | Deploy | Render (API + Postgres) · Vercel (SPA) |
 
@@ -74,6 +75,8 @@ python manage.py runserver    # → http://127.0.0.1:8000
 ```
 
 > **Using Supabase / Postgres instead of SQLite?** Just set `DATABASE_URL` in `backend/.env` to your Supabase connection string (Project Settings → Database → Connection string → URI). SSL is required by default. Everything else is identical.
+
+> **Using Redis cache?** Set `CACHE_URL` or `REDIS_URL` in `backend/.env`, for example `redis://default:<password>@<host>:6379/0`. If it is blank, Django uses an in-process cache that still improves repeated reads during local development.
 
 Run the engine unit tests:
 
@@ -150,6 +153,11 @@ All responses are JSON. Errors are normalised to `{ "detail": "...", "errors": {
 | POST | `/api/auth/refresh/` | Public — refresh access token |
 | GET  | `/api/auth/me/` | Authed — current user |
 
+Sales officer registration requires a Nippon Toyota email (`@nippon.test`) and
+a unique employee code in the `SO-<serial number>` format, for example
+`SO-104`. These rules are enforced by serializer validation and database
+constraints.
+
 ### Admin
 | Method | Endpoint | Access |
 |---|---|---|
@@ -170,6 +178,15 @@ All responses are JSON. Errors are normalised to `{ "detail": "...", "errors": {
 
 `POST /api/calculate/` — request `{ lines: [{car_model, cars_sold}], month, year }` → response `{ total_cars, slab: {min_cars, max_cars, rate_per_car, label}, total_payout, matched, breakdown: [...] }`.
 
+### Caching
+The API caches read-heavy responses and lookup data:
+
+- Admin/officer analytics: short TTL, invalidated when sales, slabs, inventory, or account approvals change.
+- Car inventory, slab list, and officer list: cached with versioned keys and invalidated on admin writes.
+- Calculator lookup data: current slabs and car-model names are cached, while the payout calculation itself remains request-accurate.
+
+Production can use Redis by setting `CACHE_URL`; local development falls back to Django's local-memory cache.
+
 ---
 
 ## 🔒 Security
@@ -177,6 +194,7 @@ All responses are JSON. Errors are normalised to `{ "detail": "...", "errors": {
 - JWT: short-lived access (15 min) + refresh (7 days) with rotation; role embedded in claims.
 - DRF permission classes (`IsAdmin`, `IsApprovedSalesOfficer`, `IsAdminOrReadOnly`) enforce RBAC server-side on every endpoint. Officers' sales querysets are filtered to `request.user` — they can never read/write another officer's data.
 - Passwords hashed with Django's PBKDF2 + min-length/common-password validators.
+- Login-page demo credentials are fetched from database-backed helper rows and returned only when the linked Supabase user is active, approved, and the displayed password authenticates against the user's password hash. Set `DEMO_CREDENTIALS_ENABLED=False` to hide the helper in a private deployment.
 - `DEBUG=False`, HSTS, secure cookies, and SSL redirect in production settings.
 - CORS locked to the configured frontend origin in production; `SECRET_KEY`, `DATABASE_URL`, hosts, and CORS all come from env vars (never committed).
 
@@ -193,7 +211,7 @@ The **access token is held in memory** (`sessionStorage`, cleared on tab close) 
 3. After the first deploy, set:
    - `ALLOWED_HOSTS` → your Render host (e.g. `nippon-incentive-api.onrender.com`)
    - `CORS_ALLOWED_ORIGINS` → your Vercel URL (e.g. `https://your-app.vercel.app`)
-   - The generated `DEMO_ADMIN_PASSWORD` is printed in the build log.
+   - `DEMO_ADMIN_PASSWORD` and `DEMO_OFFICER_PASSWORD` if you want to override the visible demo logins.
 
 ### SPA → Vercel
 1. Vercel → **New Project** → import the repo, set **Root Directory** to `frontend`.

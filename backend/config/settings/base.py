@@ -30,6 +30,13 @@ def env_bool(key: str, default: bool = False) -> bool:
     return val.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def env_int(key: str, default: int) -> int:
+    val = os.environ.get(key)
+    if val is None or val == "":
+        return default
+    return int(val)
+
+
 def env_list(key: str, default=None):
     val = os.environ.get(key)
     if not val:
@@ -124,6 +131,34 @@ else:
         }
     }
 
+# --- Cache ---------------------------------------------------------------
+# Set CACHE_URL/REDIS_URL to a Redis URL in production. Local development and
+# tests fall back to Django's in-process cache so the app still runs zero-setup.
+CACHE_URL = env("CACHE_URL") or env("REDIS_URL")
+CACHE_DEFAULT_TIMEOUT = env_int("CACHE_DEFAULT_TIMEOUT", 300)
+CACHE_ANALYTICS_TIMEOUT = env_int("CACHE_ANALYTICS_TIMEOUT", 60)
+CACHE_REFERENCE_TIMEOUT = env_int("CACHE_REFERENCE_TIMEOUT", 300)
+CACHE_KEY_PREFIX = env("CACHE_KEY_PREFIX", "nippon-incentive")
+
+if CACHE_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": CACHE_URL,
+            "TIMEOUT": CACHE_DEFAULT_TIMEOUT,
+            "KEY_PREFIX": CACHE_KEY_PREFIX,
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "nippon-incentive-local",
+            "TIMEOUT": CACHE_DEFAULT_TIMEOUT,
+            "KEY_PREFIX": CACHE_KEY_PREFIX,
+        }
+    }
+
 AUTH_USER_MODEL = "accounts.User"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -189,5 +224,8 @@ CORS_ALLOWED_ORIGINS = env_list(
 CORS_ALLOW_CREDENTIALS = True
 
 # Admin seed defaults (overridable via env / seed command flags).
+DEMO_CREDENTIALS_ENABLED = env_bool("DEMO_CREDENTIALS_ENABLED", True)
 DEMO_ADMIN_EMAIL = env("DEMO_ADMIN_EMAIL", "admin@nippon.test")
 DEMO_ADMIN_PASSWORD = env("DEMO_ADMIN_PASSWORD", "Admin@12345")
+DEMO_OFFICER_EMAIL = env("DEMO_OFFICER_EMAIL", "ravi.officer@nippon.test")
+DEMO_OFFICER_PASSWORD = env("DEMO_OFFICER_PASSWORD", "Officer@12345")

@@ -3,6 +3,7 @@ import { api } from './client'
 export const authApi = {
   login: (payload) => api.post('/auth/login/', payload).then((r) => r.data),
   register: (payload) => api.post('/auth/register/', payload).then((r) => r.data),
+  demoCredentials: () => api.get('/auth/demo-credentials/').then((r) => r.data),
   me: () => api.get('/auth/me/').then((r) => r.data),
 }
 
@@ -38,6 +39,28 @@ export const salesApi = {
 export const analyticsApi = {
   admin: () => api.get('/analytics/admin/').then((r) => r.data),
   officer: () => api.get('/analytics/officer/').then((r) => r.data),
+}
+
+export const exportApi = {
+  // Returns the full axios response so callers can read the CSV blob + filename.
+  sales: (params) => api.get('/export/sales/', { params, responseType: 'blob' }),
+}
+
+/** Trigger a browser download for a file-bearing axios response. */
+export function downloadResponse(response, fallbackName = 'export.csv') {
+  const disposition = response.headers?.['content-disposition'] || ''
+  const match = /filename="?([^"]+)"?/.exec(disposition)
+  const filename = match ? match[1] : fallbackName
+
+  const url = window.URL.createObjectURL(response.data)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+  return filename
 }
 
 /** Unwrap a paginated DRF response or return the array as-is. */

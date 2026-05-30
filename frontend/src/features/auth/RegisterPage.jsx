@@ -7,6 +7,14 @@ import { Button, Field, Input } from '../../components/ui'
 import { useAuth } from '../../auth/AuthContext'
 import { parseError } from '../../api/client'
 
+const EMAIL_PATTERN = /^[^\s@]+@nippon\.test$/i
+const EMPLOYEE_CODE_PATTERN = /^SO-[0-9]+$/
+
+function firstError(errors, field) {
+  const error = errors?.[field]
+  return Array.isArray(error) ? error[0] : error
+}
+
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -18,20 +26,58 @@ export default function RegisterPage() {
     employee_code: '',
   })
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+  const onChange = (e) => {
+    const { name } = e.target
+    let { value } = e.target
+
+    if (name === 'employee_code') {
+      value = value.toUpperCase().replace(/\s/g, '')
+    }
+    if (name === 'email') {
+      value = value.trim().toLowerCase()
+    }
+
+    setForm((f) => ({ ...f, [name]: value }))
+    setFieldErrors((errors) => ({ ...errors, [name]: undefined }))
+  }
 
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setFieldErrors({})
+
+    const payload = {
+      ...form,
+      email: form.email.trim().toLowerCase(),
+      employee_code: form.employee_code.trim().toUpperCase(),
+    }
+
+    const nextErrors = {}
+    if (!EMAIL_PATTERN.test(payload.email)) {
+      nextErrors.email = 'Use your @nippon.test email address.'
+    }
+    if (!EMPLOYEE_CODE_PATTERN.test(payload.employee_code)) {
+      nextErrors.employee_code = 'Employee code must look like SO-104.'
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors)
+      setError('Fix the highlighted fields to request access.')
+      return
+    }
+
     setLoading(true)
     try {
-      await register(form)
+      await register(payload)
       setSuccess(true)
     } catch (err) {
-      setError(parseError(err).message)
+      const parsed = parseError(err)
+      setError(parsed.message)
+      setFieldErrors(parsed.errors || {})
     } finally {
       setLoading(false)
     }
@@ -73,7 +119,7 @@ export default function RegisterPage() {
           Create account
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Submit your details for administrator approval.
+          Submit your Nippon Toyota email and assigned sales officer code for administrator approval.
         </p>
       </div>
 
@@ -86,11 +132,32 @@ export default function RegisterPage() {
             <Input name="last_name" value={form.last_name} onChange={onChange} required />
           </Field>
         </div>
-        <Field label="Email">
-          <Input name="email" type="email" autoComplete="email" placeholder="you@nippon.test" value={form.email} onChange={onChange} required />
+        <Field label="Email" hint="Sales officer accounts must use @nippon.test." error={firstError(fieldErrors, 'email')}>
+          <Input
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="name@nippon.test"
+            value={form.email}
+            onChange={onChange}
+            pattern="^[^\s@]+@nippon\.test$"
+            title="Use your @nippon.test email address."
+            invalid={!!fieldErrors.email}
+            required
+          />
         </Field>
-        <Field label="Employee code" hint="Optional - provided by your branch.">
-          <Input name="employee_code" value={form.employee_code} onChange={onChange} />
+        <Field label="Employee code" hint="Format: SO-<serial number>, for example SO-104." error={firstError(fieldErrors, 'employee_code')}>
+          <Input
+            name="employee_code"
+            value={form.employee_code}
+            onChange={onChange}
+            placeholder="SO-104"
+            pattern="^SO-[0-9]+$"
+            title="Employee code must look like SO-104."
+            autoCapitalize="characters"
+            invalid={!!fieldErrors.employee_code}
+            required
+          />
         </Field>
         <Field label="Password">
           <Input name="password" type="password" autoComplete="new-password" placeholder="Min. 8 characters" value={form.password} onChange={onChange} required />

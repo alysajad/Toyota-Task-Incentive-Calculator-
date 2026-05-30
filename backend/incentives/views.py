@@ -2,6 +2,13 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from core.cache import (
+    REFERENCE_TIMEOUT,
+    SCOPE_REFERENCE,
+    cache_get_or_set,
+    invalidate_setup_cache_on_commit,
+    make_cache_key,
+)
 from core.permissions import IsAdmin, IsAdminOrReadOnly
 
 from .models import IncentiveSlab
@@ -18,6 +25,30 @@ class IncentiveSlabViewSet(viewsets.ModelViewSet):
     queryset = IncentiveSlab.objects.all()
     serializer_class = IncentiveSlabSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+    def list(self, request, *args, **kwargs):
+        key = make_cache_key(
+            "incentives.slabs.list",
+            request.get_full_path(),
+            scopes=[SCOPE_REFERENCE],
+        )
+
+        def build():
+            return super(IncentiveSlabViewSet, self).list(request, *args, **kwargs).data
+
+        return Response(cache_get_or_set(key, build, timeout=REFERENCE_TIMEOUT))
+
+    def perform_create(self, serializer):
+        serializer.save()
+        invalidate_setup_cache_on_commit()
+
+    def perform_update(self, serializer):
+        serializer.save()
+        invalidate_setup_cache_on_commit()
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        invalidate_setup_cache_on_commit()
 
     @action(
         detail=False,
@@ -46,6 +77,7 @@ class IncentiveSlabViewSet(viewsets.ModelViewSet):
         serializer = SlabBulkReplaceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         slabs = serializer.save()
+        invalidate_setup_cache_on_commit()
         return Response(
             IncentiveSlabSerializer(slabs, many=True).data,
             status=status.HTTP_200_OK,
