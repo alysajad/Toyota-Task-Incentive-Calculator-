@@ -1,109 +1,117 @@
 import { motion } from 'framer-motion'
-import { BarChart3, ShieldCheck, TimerReset } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { BarChart3, ClipboardCheck, KeyRound, ShieldCheck, TimerReset, UserCheck } from 'lucide-react'
 import { Logo } from '../../components/Logo'
+import { cn } from '../../components/ui'
 
 const highlights = [
-  { icon: BarChart3, label: 'Live slab calculation', value: 'Server verified' },
-  { icon: ShieldCheck, label: 'Role-based access', value: 'Admin + Officer' },
-  { icon: TimerReset, label: 'Monthly workflow', value: 'Fast closeout' },
+  { icon: BarChart3, label: 'Live slab calculation' },
+  { icon: ShieldCheck, label: 'Role-based access' },
+  { icon: TimerReset, label: 'Monthly workflow' },
 ]
 
-function PreviewPanel() {
+const navItems = [
+  { to: '/login', label: 'Home' },
+  { to: '/register', label: 'Join' },
+]
+
+const workflowSteps = [
+  { icon: UserCheck, label: 'Identity', value: 'Approved account' },
+  { icon: KeyRound, label: 'Routing', value: 'Role workspace' },
+  { icon: ClipboardCheck, label: 'Audit', value: 'Traceable records' },
+]
+
+function VisualPanel() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="text-xs font-bold uppercase text-slate-500">Projected payout</div>
-          <div className="mt-2 text-4xl font-extrabold text-white nums">₹28,000</div>
+    <section className="relative hidden min-h-[720px] overflow-hidden bg-slate-950 lg:block">
+      <img
+        src="/auth-showroom.png"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-slate-950/20" />
+
+      <div className="absolute bottom-9 left-14 w-[23rem] rounded-2xl border border-white/70 bg-white/80 p-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-bold uppercase text-slate-500">Access flow</div>
+            <div className="mt-1 text-lg font-extrabold text-slate-950">Verified before payout data</div>
+          </div>
+          <span className="rounded-full border border-toyota/20 bg-toyota-50 px-3 py-1 text-xs font-bold text-toyota">
+            Secure
+          </span>
         </div>
-        <span className="rounded-full border border-toyota/30 bg-toyota/15 px-3 py-1 text-xs font-bold text-toyota-100">
-          8+ tier
-        </span>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {workflowSteps.map(({ icon: Icon, label, value }) => (
+            <div key={label} className="rounded-xl border border-slate-200/80 bg-white/75 px-3 py-3">
+              <Icon className="h-5 w-5" />
+              <div className="mt-3 text-xs font-extrabold text-slate-950">{label}</div>
+              <div className="mt-0.5 text-[11px] font-medium leading-4 text-slate-500">{value}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-8 gap-1.5">
-        {[38, 52, 46, 65, 58, 78, 70, 92].map((height, index) => (
-          <div key={index} className="flex h-24 items-end rounded bg-white/5 px-1">
-            <div
-              className="w-full rounded-sm bg-gradient-to-t from-toyota to-red-300"
-              style={{ height: `${height}%` }}
-            />
-          </div>
-        ))}
+      <div className="absolute bottom-12 right-12 grid grid-cols-3 gap-1.5">
+        <span className="h-3 w-3 rounded-full bg-white shadow-sm" />
+        <span className="h-3 w-3 rounded-full bg-white shadow-sm" />
+        <span className="h-3 w-3 rounded-full bg-white shadow-sm" />
       </div>
-
-      <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-        {['1-3', '4-7', '8+'].map((tier, index) => (
-          <div key={tier} className="rounded-xl bg-white/[0.05] px-3 py-2">
-            <div className="text-xs font-bold text-slate-500">Tier {index + 1}</div>
-            <div className="mt-1 text-sm font-extrabold text-white nums">{tier}</div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </section>
   )
 }
 
 export function AuthLayout({ children }) {
+  const location = useLocation()
+
   return (
-    <div className="grid min-h-screen bg-slate-50 lg:grid-cols-[1fr_0.92fr]">
-      <section className="relative hidden overflow-hidden bg-slate-950 lg:block">
-        <div className="dash-grid absolute inset-0 opacity-35" />
-        <div className="race-stripes absolute inset-y-0 right-0 w-1.5" />
-
-        <div className="relative flex min-h-screen flex-col justify-between p-12">
-          <Logo />
-
-          <div className="max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-            >
-              <p className="text-sm font-bold uppercase text-toyota-200">Incentive operations</p>
-              <h1 className="mt-4 max-w-lg text-5xl font-extrabold leading-[1.05] text-white">
-                Calculate rewards with clean, auditable sales data.
-              </h1>
-              <p className="mt-5 max-w-md text-base leading-7 text-slate-400">
-                Admins maintain the rate card. Officers log monthly volume. The payout engine keeps every total aligned with the configured slab model.
-              </p>
-            </motion.div>
-
-            <div className="mt-10 grid gap-3">
-              {highlights.map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-toyota">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white">{label}</div>
-                    <div className="text-xs font-medium text-slate-500">{value}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <PreviewPanel />
-        </div>
-      </section>
-
-      <section className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
+    <div className="min-h-screen overflow-hidden bg-slate-100 px-4 py-5 sm:px-6 lg:px-10">
+      <main className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-7xl items-center justify-center">
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 18, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.42, ease: 'easeOut' }}
-          className="w-full max-w-md"
+          className="relative grid w-full overflow-hidden rounded-[2rem] border border-white bg-white shadow-[0_35px_90px_-45px_rgba(15,23,42,0.45)] lg:min-h-[720px] lg:grid-cols-[0.92fr_1.08fr]"
         >
-          <div className="mb-6 flex justify-center lg:hidden">
+          <header className="absolute inset-x-0 top-0 z-20 flex h-24 items-center justify-between px-6 sm:px-10 lg:px-12">
             <Logo variant="ink" />
-          </div>
+            <nav className="hidden items-center gap-10 text-sm font-semibold md:flex">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    'transition-colors duration-200 hover:text-toyota',
+                    location.pathname === item.to ? 'text-slate-950' : 'text-slate-400',
+                  )}
+                  aria-current={location.pathname === item.to ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </header>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-float sm:p-8">
-            {children}
-          </div>
+          <section className="relative z-10 flex min-h-[calc(100vh-2.5rem)] items-center px-6 pb-9 pt-28 sm:px-12 lg:min-h-[720px] lg:px-16">
+            <div className="w-full max-w-md">
+              {children}
+
+              <div className="mt-7 grid gap-2 sm:grid-cols-3">
+                {highlights.map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+                    <Icon className="h-4 w-4 shrink-0 text-toyota" />
+                    <span className="text-[11px] font-bold leading-4 text-slate-600">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <VisualPanel />
         </motion.div>
-      </section>
+      </main>
     </div>
   )
 }
