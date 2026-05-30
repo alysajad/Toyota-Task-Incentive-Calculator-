@@ -5,9 +5,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Role
+from core.cache import (
+    ANALYTICS_TIMEOUT,
+    SCOPE_ACCOUNTS,
+    SCOPE_SALES,
+    SCOPE_SETUP,
+    cache_get_or_set,
+    make_cache_key,
+    officer_sales_scope,
+)
 from core.permissions import IsAdmin, IsApprovedSalesOfficer
 
 from .analytics import build_admin_analytics, build_officer_analytics
+from .exports import build_sales_csv
 from .models import MonthlySalesEntry
 from .serializers import (
     CalculateRequestSerializer,
@@ -73,7 +83,12 @@ class AdminAnalyticsView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request):
-        return Response(build_admin_analytics())
+        key = make_cache_key(
+            "analytics.admin",
+            scopes=[SCOPE_SALES, SCOPE_SETUP, SCOPE_ACCOUNTS],
+        )
+        data = cache_get_or_set(key, build_admin_analytics, timeout=ANALYTICS_TIMEOUT)
+        return Response(data)
 
 
 class OfficerAnalyticsView(APIView):
@@ -82,4 +97,37 @@ class OfficerAnalyticsView(APIView):
     permission_classes = [IsApprovedSalesOfficer]
 
     def get(self, request):
-        return Response(build_officer_analytics(request.user))
+        key = make_cache_key(
+            "analytics.officer",
+            request.user.id,
+            scopes=[officer_sales_scope(request.user.id), SCOPE_SETUP],
+        )
+        data = cache_get_or_set(
+            key,
+            lambda: build_officer_analytics(request.user),
+            timeout=ANALYTICS_TIMEOUT,
+        )
+        return Response(data)
+
+
+class SalesExportView(APIView):
+    """CSV download of saved sales — own data for officers, all for admins.
+
+    Query params:
+      * ``detail=summary|lines`` — per-month rows (default) or per-model rows.
+      * ``officer=<id>`` — admin-only narrowing to a single officer.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        # Same gate as the read endpoints: admins, or approved officers only.
+        if not (user.is_admin or (user.is_sales_officer and user.is_approved)):
+            self.permission_denied(
+                request,
+                message="Your sales-officer account must be approved to export data.",
+            )
+        officer_id = request.query_params.get("officer") if user.is_admin else None
+        detail = request.query_params.get("detail", "summary")
+        return build_sales_csv(user, officer_id=officer_id, detail=detail)

@@ -11,6 +11,7 @@ import {
   PieChart,
   Plus,
   Save,
+  Target,
   TrendingUp,
   Trophy,
   Wallet,
@@ -22,6 +23,8 @@ import { parseError } from '../../api/client'
 import { DonutChart, HorizontalBarChart, LineAreaChart } from '../../components/charts'
 import { Button, Card, Skeleton, EmptyState, Badge } from '../../components/ui'
 import { Select } from '../../components/ui'
+import { ExportMenu } from '../../components/ExportMenu'
+import { TrendChip } from '../../components/TrendChip'
 import { useToast } from '../../components/Toast'
 import { useDebounce } from '../../lib/useDebounce'
 import { AnimatedNumber } from '../../components/AnimatedNumber'
@@ -214,6 +217,23 @@ export default function OfficerDashboard() {
   return (
     <div className="space-y-5">
       <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-extrabold text-slate-950">My performance</h2>
+            <TrendChip
+              direction={officerSummary.mom_direction}
+              pct={officerSummary.mom_pct}
+              delta={officerSummary.mom_delta}
+              prevLabel={officerSummary.prev_label}
+            />
+            {officerSummary.ytd_payout != null && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+                {officerSummary.ytd_year} YTD · {formatCurrency(officerSummary.ytd_payout)} · {formatNumber(officerSummary.ytd_cars)} cars
+              </span>
+            )}
+          </div>
+          <ExportMenu label="Export my sales" />
+        </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricTile
             icon={Wallet}
@@ -489,6 +509,28 @@ export default function OfficerDashboard() {
               </>
             )}
           </div>
+
+          {/* Next-tier coaching: how many more cars unlock a better rate */}
+          {calc?.next_tier && totalCars > 0 && (
+            <div className="border-t border-white/10 px-5 py-4">
+              <div className="flex items-start gap-3 rounded-lg bg-emerald-500/10 px-3 py-2.5">
+                <Target className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                <div className="text-sm leading-5">
+                  <span className="font-bold text-emerald-300">
+                    Sell {calc.next_tier.cars_to_next} more {calc.next_tier.cars_to_next === 1 ? 'car' : 'cars'}
+                  </span>
+                  <span className="text-white/70">
+                    {' '}to reach the {calc.next_tier.label} tier at {formatCurrency(calc.next_tier.rate_per_car)}/car —
+                    {' '}
+                    <span className="font-semibold text-white">
+                      +{formatCurrency(calc.next_tier.uplift)}
+                    </span>{' '}
+                    on this month.
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="border-t border-white/10 p-4">
             <Button

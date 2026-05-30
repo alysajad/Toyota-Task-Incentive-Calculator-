@@ -3,6 +3,7 @@ import datetime
 from django.db import transaction
 from rest_framework import serializers
 
+from core.cache import invalidate_sales_cache_on_commit
 from inventory.models import CarModel
 
 from .models import MonthlySalesEntry, SalesLine
@@ -95,6 +96,7 @@ class MonthlySalesEntrySerializer(serializers.ModelSerializer):
             sales_officer=officer, month=month, year=year
         )
         self._sync_lines(entry, lines_data)
+        invalidate_sales_cache_on_commit(officer.id)
         return entry
 
     @transaction.atomic
@@ -105,6 +107,7 @@ class MonthlySalesEntrySerializer(serializers.ModelSerializer):
         instance.save()
         if lines_data is not None:
             self._sync_lines(instance, lines_data)
+        invalidate_sales_cache_on_commit(instance.sales_officer_id)
         return instance
 
 

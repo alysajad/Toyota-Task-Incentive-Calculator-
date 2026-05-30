@@ -5,6 +5,7 @@ import { History, Car, ChevronRight } from 'lucide-react'
 import { salesApi, asList } from '../../api/endpoints'
 import { parseError } from '../../api/client'
 import { Card, Skeleton, EmptyState, Badge } from '../../components/ui'
+import { ExportMenu } from '../../components/ExportMenu'
 import { MONTHS, formatCurrency } from '../../lib/format'
 
 export default function HistoryPage() {
@@ -57,7 +58,10 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-500">Your saved monthly submissions and their calculated payouts.</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-slate-500">Your saved monthly submissions and their calculated payouts.</p>
+        <ExportMenu />
+      </div>
       {entries.map((entry, i) => {
         const calc = entry.calculation || {}
         const expanded = open === entry.id

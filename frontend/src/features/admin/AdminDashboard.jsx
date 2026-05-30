@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 
 import { analyticsApi } from '../../api/endpoints'
+import { ExportMenu } from '../../components/ExportMenu'
+import { TrendChip } from '../../components/TrendChip'
 import {
   DonutChart,
   HorizontalBarChart,
@@ -177,19 +179,35 @@ export default function AdminDashboard() {
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
                 Welcome back, {fullName(user).split(' ')[0]}. Track sales volume, payout exposure, top officers, model demand, tier usage, and approval health from the records already saved in the system.
               </p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <TrendChip
+                  direction={summary.mom_direction}
+                  pct={summary.mom_pct}
+                  delta={summary.mom_delta}
+                  prevLabel={summary.prev_label}
+                />
+                {summary.ytd_payout != null && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-slate-200">
+                    {summary.ytd_year} YTD · {formatCurrency(summary.ytd_payout)} · {formatNumber(summary.ytd_cars)} cars
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-3">
-              {quickLinks.map(({ to, label, icon: Icon }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/[0.08]"
-                >
-                  <Icon className="h-4 w-4 text-toyota-200" />
-                  {label}
-                </Link>
-              ))}
+            <div className="flex flex-col gap-2">
+              <ExportMenu label="Export sales CSV" size="md" />
+              <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
+                {quickLinks.map(({ to, label, icon: Icon }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/[0.08]"
+                  >
+                    <Icon className="h-4 w-4 text-toyota-200" />
+                    {label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -199,7 +217,7 @@ export default function AdminDashboard() {
         <AnalyticsCard
           label="Total payout exposure"
           value={formatCurrency(summary.total_payout)}
-          caption={`${formatNumber(summary.submissions)} submitted month${summary.submissions === 1 ? '' : 's'}`}
+          caption={`${formatNumber(summary.active_officers)} active officer${summary.active_officers === 1 ? '' : 's'} · ${formatCurrency(summary.avg_payout_per_officer)} avg`}
           icon={Wallet}
           tone="red"
         />

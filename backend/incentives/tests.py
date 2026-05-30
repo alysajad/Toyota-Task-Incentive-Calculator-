@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.test import SimpleTestCase
 
-from .engine import Slab, calculate_incentive, validate_slab_set
+from .engine import Slab, calculate_incentive, next_tier, validate_slab_set
 
 # The assignment's default slabs: 1–3 @ 1000, 4–7 @ 2000, 8+ @ 3500.
 DEFAULT_SLABS = [
@@ -11,6 +11,27 @@ DEFAULT_SLABS = [
     Slab(4, 7, Decimal("2000")),
     Slab(8, None, Decimal("3500")),
 ]
+
+
+class NextTierTests(SimpleTestCase):
+    def test_points_to_the_next_higher_rate_tier(self):
+        nxt = next_tier(2, DEFAULT_SLABS)
+        self.assertIsNotNone(nxt)
+        self.assertEqual(nxt.cars_to_next, 2)  # 2 -> 4 starts the 4–7 tier
+        self.assertEqual(nxt.next_label, "4–7")
+        self.assertEqual(nxt.next_rate, Decimal("2000"))
+        # Whole-slab: 4 cars × 2000 = 8000, vs current 2 × 1000 = 2000 → +6000.
+        self.assertEqual(nxt.payout_at_threshold, Decimal("8000"))
+        self.assertEqual(nxt.uplift, Decimal("6000"))
+
+    def test_top_tier_has_no_next(self):
+        self.assertIsNone(next_tier(12, DEFAULT_SLABS))
+
+    def test_zero_cars_points_to_first_tier(self):
+        nxt = next_tier(0, DEFAULT_SLABS)
+        self.assertIsNotNone(nxt)
+        self.assertEqual(nxt.cars_to_next, 1)
+        self.assertEqual(nxt.next_label, "1–3")
 
 
 class CalculateIncentiveTests(SimpleTestCase):

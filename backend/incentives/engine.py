@@ -161,6 +161,50 @@ class CalculationResult:
         }
 
 
+@dataclass(frozen=True)
+class NextTier:
+    """How far the next (higher-rate) tier is from the current car count.
+
+    Pure helper for the live tracker's "sell N more to unlock ₹X/car" coaching.
+    """
+
+    cars_to_next: int
+    next_label: str
+    next_rate: Decimal
+    # Payout the officer would earn the moment they cross the threshold
+    # (whole-slab model: every car repriced at the higher rate).
+    payout_at_threshold: Decimal
+    uplift: Decimal  # payout_at_threshold − current payout
+
+
+def next_tier(total_cars: int, slabs: Sequence[Slab]) -> Optional[NextTier]:
+    """Return the nearest higher-rate tier reachable by selling more cars.
+
+    Returns ``None`` when there is no configured tier above the current count
+    with a strictly better rate (already at the top, or higher tiers pay less).
+    """
+    ordered = sorted(slabs, key=lambda s: s.min_cars)
+    current = next((s for s in ordered if s.contains(total_cars)), None)
+    current_rate = current.rate_per_car if current else Decimal("0")
+    current_payout = Decimal(max(total_cars, 0)) * current_rate
+
+    for slab in ordered:
+        if slab.min_cars <= total_cars:
+            continue
+        if slab.rate_per_car <= current_rate:
+            continue
+        threshold = slab.min_cars
+        payout_at_threshold = Decimal(threshold) * slab.rate_per_car
+        return NextTier(
+            cars_to_next=threshold - total_cars,
+            next_label=slab.label,
+            next_rate=slab.rate_per_car,
+            payout_at_threshold=payout_at_threshold,
+            uplift=payout_at_threshold - current_payout,
+        )
+    return None
+
+
 def calculate_incentive(total_cars: int, slabs: Sequence[Slab]) -> CalculationResult:
     """The core rule. Pure: same inputs → same output, no side effects.
 

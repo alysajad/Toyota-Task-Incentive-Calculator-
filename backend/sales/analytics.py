@@ -31,6 +31,37 @@ def _money(value) -> str:
     return str(Decimal(value).quantize(Decimal("0.01")))
 
 
+def _trend_delta(sorted_rows) -> dict:
+    """Month-over-month payout movement from chronologically sorted rows.
+
+    Each row must carry a Decimal ``total_payout``. Returns a small, JSON-ready
+    summary the dashboards render as a trend chip.
+    """
+    if len(sorted_rows) < 2:
+        return {
+            "mom_delta": "0.00",
+            "mom_pct": None,
+            "mom_direction": "flat",
+            "prev_label": "",
+        }
+    latest = Decimal(sorted_rows[-1]["total_payout"])
+    prev = Decimal(sorted_rows[-2]["total_payout"])
+    delta = latest - prev
+    if delta > 0:
+        direction = "up"
+    elif delta < 0:
+        direction = "down"
+    else:
+        direction = "flat"
+    pct = float((delta / prev * 100).quantize(Decimal("0.1"))) if prev > 0 else None
+    return {
+        "mom_delta": _money(delta),
+        "mom_pct": pct,
+        "mom_direction": direction,
+        "prev_label": sorted_rows[-2].get("label", ""),
+    }
+
+
 def _full_name(user) -> str:
     name = f"{user.first_name} {user.last_name}".strip()
     return name or user.email
@@ -172,6 +203,15 @@ def build_admin_analytics() -> dict:
     active_models = CarModel.objects.filter(is_active=True).count()
     total_models = CarModel.objects.count()
 
+    chronological = sorted(monthly.values(), key=lambda r: (r["year"], r["month"]))
+    trend = _trend_delta(chronological)
+    ytd_cars = sum(r["cars"] for r in monthly.values() if r["year"] == current.year)
+    ytd_payout = sum(
+        (r["total_payout"] for r in monthly.values() if r["year"] == current.year),
+        Decimal("0"),
+    )
+    active_officers = len(officers)
+
     return {
         "summary": {
             "total_cars": total_cars,
@@ -180,10 +220,18 @@ def build_admin_analytics() -> dict:
             "avg_cars_per_submission": round(total_cars / submission_count, 1)
             if submission_count
             else 0,
+            "avg_payout_per_officer": _money(total_payout / active_officers)
+            if active_officers
+            else "0.00",
+            "active_officers": active_officers,
             "active_models": active_models,
             "retired_models": max(total_models - active_models, 0),
             "approved_officers": status_counts[AccountStatus.APPROVED],
             "pending_officers": status_counts[AccountStatus.PENDING],
+            "ytd_cars": ytd_cars,
+            "ytd_payout": _money(ytd_payout),
+            "ytd_year": current.year,
+            **trend,
         },
         "current_month": {
             **current_month,
@@ -320,6 +368,14 @@ def build_officer_analytics(user) -> dict:
 
     submission_count = len(entries)
 
+    chronological = sorted(monthly, key=lambda r: (r["year"], r["month"]))
+    trend = _trend_delta(chronological)
+    ytd_cars = sum(r["cars"] for r in monthly if r["year"] == current.year)
+    ytd_payout = sum(
+        (r["total_payout"] for r in monthly if r["year"] == current.year),
+        Decimal("0"),
+    )
+
     return {
         "summary": {
             "total_cars": total_cars,
@@ -332,6 +388,10 @@ def build_officer_analytics(user) -> dict:
             "best_month_payout": _money(best_month["total_payout"])
             if best_month
             else "0.00",
+            "ytd_cars": ytd_cars,
+            "ytd_payout": _money(ytd_payout),
+            "ytd_year": current.year,
+            **trend,
         },
         "current_month": {
             **current_month,
