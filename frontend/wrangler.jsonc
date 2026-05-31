@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers config for serving the built SPA as static assets.
+  // `npx wrangler deploy` uploads ./dist; SPA routing falls back to index.html.
+  "name": "toyota-incentive-calculator",
+  "compatibility_date": "2025-05-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
