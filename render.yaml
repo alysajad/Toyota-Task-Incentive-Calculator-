@@ -1,6 +1,7 @@
-# Render Blueprint — one-click API + Postgres provisioning.
+# Render Blueprint — deploys the Django API.
 # Deploy: push to GitHub, then New → Blueprint and point at this repo.
-# (The React SPA deploys separately on Vercel — see README.)
+# Database is Supabase Postgres (set DATABASE_URL in the dashboard below).
+# The React SPA deploys separately on Cloudflare Pages — see README.
 services:
   - type: web
     name: nippon-incentive-api
@@ -9,6 +10,7 @@ services:
     plan: free
     buildCommand: ./build.sh
     startCommand: gunicorn config.wsgi:application
+    healthCheckPath: /api/health/
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.6
@@ -21,13 +23,19 @@ services:
       - key: ALLOWED_HOSTS
         sync: false # set to your Render host, e.g. nippon-incentive-api.onrender.com
       - key: CORS_ALLOWED_ORIGINS
-        sync: false # set to your Vercel URL, e.g. https://your-app.vercel.app
+        sync: false # set to your Cloudflare Pages URL, e.g. https://your-app.pages.dev
       - key: CACHE_URL
         sync: false # optional Redis URL; blank falls back to per-process cache
+      # --- Supabase Postgres ---
+      # Use the SESSION POOLER URI (port 5432) from Supabase → Project Settings
+      # → Database → Connection string. The direct db.<ref>.supabase.co host is
+      # IPv6-only and will NOT connect from Render free — the pooler is IPv4.
       - key: DATABASE_URL
-        fromDatabase:
-          name: nippon-incentive-db
-          property: connectionString
+        sync: false
+      - key: DB_SSL_REQUIRE
+        value: "True"
+      - key: PGBOUNCER
+        value: "False" # set "True" only if you use the transaction pooler (port 6543)
       # Demo logins for evaluators. These match the README "Demo credentials"
       # table so the deployed app accepts the documented logins. They are
       # seeded as password hashes and never exposed by the API. Change them
@@ -38,7 +46,3 @@ services:
         value: Admin@12345
       - key: DEMO_OFFICER_PASSWORD
         value: Officer@12345
-
-databases:
-  - name: nippon-incentive-db
-    plan: free

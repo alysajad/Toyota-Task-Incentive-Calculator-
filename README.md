@@ -205,18 +205,42 @@ The **access token is held in memory** (`sessionStorage`, cleared on tab close) 
 
 ## ☁️ Deployment
 
-### API → Render
-1. Push this repo to GitHub.
-2. Render → **New → Blueprint** → select the repo. `render.yaml` provisions the web service **and** a free Postgres instance, runs `build.sh` (install → collectstatic → migrate → `seed_demo`), and starts Gunicorn.
-3. After the first deploy, set:
-   - `ALLOWED_HOSTS` → your Render host (e.g. `nippon-incentive-api.onrender.com`)
-   - `CORS_ALLOWED_ORIGINS` → your Vercel URL (e.g. `https://your-app.vercel.app`)
-   - `DEMO_ADMIN_PASSWORD` and `DEMO_OFFICER_PASSWORD` if you want to override the seeded demo logins.
+Free, persistent stack: **Supabase** (Postgres) + **Render** (API) + **Cloudflare Pages** (SPA). Deploy in this order — each step produces a URL the next one needs.
 
-### SPA → Vercel
-1. Vercel → **New Project** → import the repo, set **Root Directory** to `frontend`.
-2. Add env var `VITE_API_BASE_URL` = `https://<your-render-host>/api`.
-3. Deploy. `vercel.json` handles the SPA rewrite so client-side routes resolve.
+### 1. Database → Supabase
+1. [supabase.com](https://supabase.com) → **New project**. Set a database password and pick a region close to your Render region.
+2. **Project Settings → Database → Connection string → URI**, and choose the **Session pooler** (host looks like `aws-0-<region>.pooler.supabase.com`, port `5432`). Copy it and replace `[YOUR-PASSWORD]` with your DB password.
+   - ⚠️ Do **not** use the direct `db.<ref>.supabase.co` host — it is IPv6-only and will not connect from Render's free tier. The session pooler is IPv4.
+
+### 2. API → Render
+1. Push this repo to GitHub.
+2. Render → **New → Blueprint** → select the repo. `render.yaml` creates the web service, runs `build.sh` (install → collectstatic → migrate → `seed_demo`), and starts Gunicorn with a `/api/health/` health check.
+3. Set these env vars in the Render dashboard (the Blueprint marks them `sync: false`):
+   - `DATABASE_URL` → the Supabase session-pooler URI from step 1.
+   - `ALLOWED_HOSTS` → your Render host, e.g. `nippon-incentive-api.onrender.com`.
+   - `CORS_ALLOWED_ORIGINS` → leave blank for now; fill after step 3.
+4. Deploy. Confirm `https://<your-render-host>/api/health/` returns `{"status":"ok"}`.
+
+### 3. SPA → Cloudflare Pages
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages → Create → Pages → Connect to Git** → authorize GitHub and pick this repo.
+2. Build settings:
+   - **Framework preset:** `Vite` (or `None`)
+   - **Root directory (advanced):** `frontend`
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+3. Under **Environment variables (Production)** add:
+   - `VITE_API_BASE_URL` = `https://<your-render-host>/api`
+   - (`.nvmrc` already pins Node 22; no `NODE_VERSION` var needed.)
+4. **Save and Deploy.** You'll get a `https://<project>.pages.dev` URL. `public/_redirects` (`/*  /index.html  200`) makes client-side routes like `/admin` resolve.
+
+### 4. Wire the two together
+1. Back in Render, set `CORS_ALLOWED_ORIGINS` = your `https://<project>.pages.dev` URL → **Save** (triggers a redeploy).
+2. Open the Pages URL and log in with the [demo credentials](#-demo-credentials).
+
+### 5. Keep the free API warm (avoid cold starts)
+Render free web services sleep after ~15 min idle (next request waits ~30–60s). Point a free uptime monitor — [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org) — at `https://<your-render-host>/api/health/` every 10 minutes so evaluators never hit a cold start.
+
+> Changing the frontend host? `VITE_API_BASE_URL` is the only required env var, the build is always `npm run build` → `dist`, and SPA routing needs either `public/_redirects` (Cloudflare/Netlify) or a rewrite to `/index.html` (Vercel via `vercel.json`, kept in-repo as a fallback).
 
 ---
 
@@ -229,4 +253,4 @@ The **access token is held in memory** (`sessionStorage`, cleared on tab close) 
 - [x] RBAC enforced server-side (verified: officer → admin endpoints return 403).
 - [x] Responsive on mobile + desktop; loading/empty/error states throughout.
 - [x] Seed data for a one-click populated demo.
-- [x] Deploy-ready (Render Blueprint + Vercel config + env templates).
+- [x] Deploy-ready (Supabase + Render Blueprint + Cloudflare Pages config + env templates).
