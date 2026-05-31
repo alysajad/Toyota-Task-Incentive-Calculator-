@@ -15,6 +15,8 @@ A role-based web platform that computes **tiered, slab-wise monthly incentives**
 
 Sign in with the [demo credentials](#-demo-credentials). The free API is kept warm by an uptime monitor, so there's no cold-start wait.
 
+> The live database is **already seeded** with ~9 months of sample sales across multiple officers, so every dashboard, chart, and the CSV export are populated the moment you log in — no setup needed.
+
 ---
 
 ## ✨ Highlights
