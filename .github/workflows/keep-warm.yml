@@ -1,0 +1,19 @@
+name: Keep API warm
+
+# Pings the Render health endpoint so the free-tier API is less likely to be
+# cold when an evaluator opens the app. GitHub-scheduled runs are often delayed
+# a few minutes, so this is a best-effort baseline — pair it with an external
+# monitor (e.g. UptimeRobot at 5-min intervals) for reliable keep-warm.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /api/health/
+        run: |
+          curl -fsS --max-time 90 --retry 3 --retry-delay 10 \
+            https://nippon-incentive-api-0rzk.onrender.com/api/health/
