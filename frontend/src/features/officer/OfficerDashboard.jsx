@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   Activity,
   BarChart3,
+  Calendar,
   Car,
   CheckCircle2,
   Flame,
@@ -23,7 +24,6 @@ import { analyticsApi, carsApi, slabsApi, salesApi, asList } from '../../api/end
 import { parseError } from '../../api/client'
 import { DonutChart, HorizontalBarChart, LineAreaChart } from '../../components/charts'
 import { Button, Card, Skeleton, EmptyState, Badge } from '../../components/ui'
-import { Select } from '../../components/ui'
 import { ExportMenu } from '../../components/ExportMenu'
 import { TrendChip } from '../../components/TrendChip'
 import { useToast } from '../../components/Toast'
@@ -32,7 +32,6 @@ import { AnimatedNumber } from '../../components/AnimatedNumber'
 import { MONTHS, formatCurrency, formatNumber } from '../../lib/format'
 
 const NOW = new Date()
-const YEARS = [NOW.getFullYear() - 1, NOW.getFullYear(), NOW.getFullYear() + 1]
 
 function MetricTile({ icon: Icon, label, value, caption, tone = 'slate' }) {
   const tones = {
@@ -76,8 +75,11 @@ export default function OfficerDashboard() {
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const [month, setMonth] = useState(NOW.getMonth() + 1)
-  const [year, setYear] = useState(NOW.getFullYear())
+  // Officers may only log the current month — past months are locked so the
+  // analytics stay trustworthy (history is seeded server-side). The backend
+  // enforces this too; here we simply pin the form to the current period.
+  const month = NOW.getMonth() + 1
+  const year = NOW.getFullYear()
   const [volumes, setVolumes] = useState({}) // {carId: count}
   const [savedSnapshot, setSavedSnapshot] = useState('{}')
 
@@ -351,21 +353,12 @@ export default function OfficerDashboard() {
               <h2 className="text-lg font-extrabold text-content">Log monthly sales</h2>
               <p className="mt-1 text-sm text-muted">Enter cars sold per model. The payout updates live.</p>
             </div>
-            <div className="flex gap-2">
-              <Select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-36">
-                {MONTHS.map((m, i) => (
-                  <option key={m} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </Select>
-              <Select value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-24">
-                {YEARS.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </Select>
+            <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-inset px-3 py-2 text-sm font-semibold text-content">
+              <Calendar className="h-4 w-4 text-muted" />
+              <span>{MONTHS[month - 1]} {year}</span>
+              <span className="rounded-full bg-toyota-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-toyota">
+                Current month
+              </span>
             </div>
             </div>
           </div>

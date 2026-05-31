@@ -7,6 +7,7 @@ One-command demo seeding so graders open the live URL to a populated app.
 Creates: 1 admin, 2 approved officers + 1 pending, ~5 Toyota-style cars,
 the 3 default slabs, and a pre-filled month for one officer.
 """
+import random
 from datetime import date
 from decimal import Decimal
 
@@ -65,7 +66,7 @@ class Command(BaseCommand):
         self._seed_slabs()
         officers = self._seed_officers()
         demo_officer = self._resolve_demo_officer(officers)
-        self._seed_prefilled_month(officers[0])
+        self._seed_history(officers)
 
         self.stdout.write(self.style.SUCCESS("\nDemo data seeded successfully.\n"))
         self.stdout.write("UI demo credentials:")
@@ -161,21 +162,58 @@ class Command(BaseCommand):
             officers[0],
         )
 
-    def _seed_prefilled_month(self, officer):
+    @staticmethod
+    def _split(total, parts, rng):
+        """Split ``total`` cars into ``parts`` non-negative chunks (sums to total)."""
+        if parts <= 1:
+            return [total]
+        cuts = sorted(rng.randint(0, total) for _ in range(parts - 1))
+        out, prev = [], 0
+        for c in cuts:
+            out.append(c - prev)
+            prev = c
+        out.append(total - prev)
+        return out
+
+    def _seed_history(self, officers):
+        """Seed ~9 months of varied sales for approved officers so the dashboards
+        have a rich trend, slab distribution, and month-over-month comparison.
+        Totals are chosen to land across all three default tiers."""
+        cars = list(CarModel.objects.filter(is_active=True))
+        approved = [o for o in officers if o.status == AccountStatus.APPROVED]
+        if not cars or not approved:
+            return
+
+        rng = random.Random(42)  # deterministic so reseeding is stable
+        # Spread of monthly totals hitting 1–3, 4–7 and 8+ tiers.
+        tier_totals = [2, 3, 5, 6, 7, 9, 11, 4, 8, 12, 1, 10]
+        months_back = 8
         today = date.today()
-        entry, _ = MonthlySalesEntry.objects.get_or_create(
-            sales_officer=officer, month=today.month, year=today.year
-        )
-        entry.lines.all().delete()
-        cars = list(CarModel.objects.all()[:3])
-        volumes = [3, 1, 1]  # total 5 → lands in the 4–7 @ 2000 tier = 10,000
-        SalesLine.objects.bulk_create(
-            [
-                SalesLine(entry=entry, car_model=car, cars_sold=vol)
-                for car, vol in zip(cars, volumes)
-            ]
-        )
+        entry_count = 0
+
+        for officer in approved:
+            for i in range(months_back, -1, -1):  # oldest → current month (i=0)
+                m, y = today.month - i, today.year
+                while m <= 0:
+                    m += 12
+                    y -= 1
+                entry, _ = MonthlySalesEntry.objects.get_or_create(
+                    sales_officer=officer, month=m, year=y
+                )
+                entry.lines.all().delete()
+                total = rng.choice(tier_totals)
+                picks = rng.sample(cars, min(len(cars), rng.randint(2, 4)))
+                volumes = self._split(total, len(picks), rng)
+                SalesLine.objects.bulk_create(
+                    [
+                        SalesLine(entry=entry, car_model=car, cars_sold=v)
+                        for car, v in zip(picks, volumes)
+                        if v > 0
+                    ]
+                )
+                entry_count += 1
+
         self.stdout.write(
-            f"  prefilled month: {officer.email} {today.month:02d}/{today.year} "
-            f"(5 cars → ₹10,000)"
+            f"  history: {entry_count} monthly entries across "
+            f"{len(approved)} officer(s), {months_back + 1} months each"
         )

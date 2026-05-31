@@ -15,7 +15,8 @@ class SalesLineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SalesLine
-        fields = ["id", "car_model", "car_name", "cars_sold"]
+        fields = ["id", "car_model", "car_name", "cars_sold", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
     def validate_cars_sold(self, value):
         if value < 0:
@@ -61,6 +62,17 @@ class MonthlySalesEntrySerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        # Officers may only log/edit the current month — past months are locked
+        # so analytics stay trustworthy (seed data is created server-side).
+        today = datetime.date.today()
+        month = attrs.get("month", getattr(self.instance, "month", None))
+        year = attrs.get("year", getattr(self.instance, "year", None))
+        if (month, year) != (today.month, today.year):
+            raise serializers.ValidationError(
+                "Sales can only be logged for the current month "
+                f"({today.strftime('%B %Y')})."
+            )
+
         lines = attrs.get("lines", [])
         seen = set()
         for line in lines:

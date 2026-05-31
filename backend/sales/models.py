@@ -43,6 +43,8 @@ class SalesLine(models.Model):
         "inventory.CarModel", on_delete=models.PROTECT, related_name="sales_lines"
     )
     cars_sold = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [

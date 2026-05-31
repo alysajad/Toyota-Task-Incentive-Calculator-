@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -8,6 +9,11 @@ from rest_framework.test import APIClient
 from accounts.models import AccountStatus, Role
 from incentives.models import IncentiveSlab
 from inventory.models import CarModel
+
+# Officers may only log the current month, so tests post to "today".
+TODAY = datetime.date.today()
+CURRENT_MONTH = TODAY.month
+CURRENT_YEAR = TODAY.year
 
 
 class ApiCacheInvalidationTests(TransactionTestCase):
@@ -45,8 +51,8 @@ class ApiCacheInvalidationTests(TransactionTestCase):
         saved = self.client.post(
             "/api/sales/",
             {
-                "month": 1,
-                "year": 2026,
+                "month": CURRENT_MONTH,
+                "year": CURRENT_YEAR,
                 "lines": [{"car_model": self.car.id, "cars_sold": 2}],
             },
             format="json",
@@ -58,6 +64,20 @@ class ApiCacheInvalidationTests(TransactionTestCase):
         self.assertEqual(refreshed.status_code, 200)
         self.assertEqual(refreshed.data["summary"]["total_cars"], 2)
         self.assertEqual(refreshed.data["summary"]["total_payout"], "200.00")
+
+    def test_officer_cannot_log_past_month(self):
+        self.client.force_authenticate(self.officer)
+        past = TODAY.replace(day=1) - datetime.timedelta(days=1)  # last month
+        res = self.client.post(
+            "/api/sales/",
+            {
+                "month": past.month,
+                "year": past.year,
+                "lines": [{"car_model": self.car.id, "cars_sold": 2}],
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400)
 
     def test_calculator_uses_fresh_slab_after_admin_update(self):
         self.client.force_authenticate(self.officer)
@@ -120,7 +140,11 @@ class SalesExportTests(TransactionTestCase):
             self.client.force_authenticate(officer)
             self.client.post(
                 "/api/sales/",
-                {"month": 1, "year": 2026, "lines": [{"car_model": self.car.id, "cars_sold": qty}]},
+                {
+                    "month": CURRENT_MONTH,
+                    "year": CURRENT_YEAR,
+                    "lines": [{"car_model": self.car.id, "cars_sold": qty}],
+                },
                 format="json",
             )
 
