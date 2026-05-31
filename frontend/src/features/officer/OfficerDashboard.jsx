@@ -5,6 +5,7 @@ import {
   BarChart3,
   Car,
   CheckCircle2,
+  Flame,
   Info,
   Layers,
   Minus,
@@ -226,6 +227,27 @@ export default function OfficerDashboard() {
               delta={officerSummary.mom_delta}
               prevLabel={officerSummary.prev_label}
             />
+            {officerSummary.rank && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700"
+                title={`${officerSummary.percentile}th percentile by cars sold`}
+              >
+                <Trophy className="h-3 w-3" />
+                Rank #{officerSummary.rank} of {officerSummary.rank_total}
+              </span>
+            )}
+            {officerSummary.streak > 1 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[11px] font-bold text-orange-700">
+                <Flame className="h-3 w-3" />
+                {officerSummary.streak}-month streak
+              </span>
+            )}
+            {officerSummary.pace_pct != null && officerCurrent.cars > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+                <TrendingUp className="h-3 w-3" />
+                {officerSummary.pace_pct >= 0 ? '+' : ''}{officerSummary.pace_pct}% vs your avg
+              </span>
+            )}
             {officerSummary.ytd_payout != null && (
               <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
                 {officerSummary.ytd_year} YTD · {formatCurrency(officerSummary.ytd_payout)} · {formatNumber(officerSummary.ytd_cars)} cars
@@ -264,6 +286,23 @@ export default function OfficerDashboard() {
             tone="slate"
           />
         </div>
+
+        {officerCurrent.next_tier && officerCurrent.cars > 0 && (
+          <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <Target className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <div className="text-sm leading-5 text-emerald-900">
+              <span className="font-bold">{officerCurrent.label}:</span> you're saved at{' '}
+              {formatNumber(officerCurrent.cars)} cars. Log{' '}
+              <span className="font-bold">
+                {officerCurrent.next_tier.cars_to_next} more{' '}
+                {officerCurrent.next_tier.cars_to_next === 1 ? 'car' : 'cars'}
+              </span>{' '}
+              to reach the {officerCurrent.next_tier.label} tier (
+              {formatCurrency(officerCurrent.next_tier.rate_per_car)}/car) —{' '}
+              <span className="font-bold">+{formatCurrency(officerCurrent.next_tier.uplift)}</span> this month.
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 xl:grid-cols-[1.25fr_0.95fr_0.95fr]">
           <AnalyticsPanel

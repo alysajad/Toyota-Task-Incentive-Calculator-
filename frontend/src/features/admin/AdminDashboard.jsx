@@ -9,8 +9,11 @@ import {
   Clock3,
   Layers,
   PieChart,
+  Percent,
+  Search,
   Trophy,
   UserCheck,
+  UserX,
   Users,
   Wallet,
 } from 'lucide-react'
@@ -24,7 +27,8 @@ import {
   LineAreaChart,
   StackedBarChart,
 } from '../../components/charts'
-import { Card, Skeleton, Badge, Button, EmptyState } from '../../components/ui'
+import { Card, Skeleton, Badge, Button, EmptyState, Select } from '../../components/ui'
+import { Modal } from '../../components/Modal'
 import { useAuth } from '../../auth/AuthContext'
 import { fullName, formatCurrency, formatNumber } from '../../lib/format'
 
@@ -106,6 +110,10 @@ export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [trendMonths, setTrendMonths] = useState(6)
+  const [officerQuery, setOfficerQuery] = useState('')
+  const [officerSort, setOfficerSort] = useState('payout')
+  const [selectedOfficer, setSelectedOfficer] = useState(null)
 
   const load = async () => {
     setLoading(true)
@@ -124,7 +132,6 @@ export default function AdminDashboard() {
   }, [])
 
   const summary = analytics?.summary || {}
-  const current = analytics?.current_month || {}
   const modelMix = analytics?.model_mix || []
   const monthlyTrend = analytics?.monthly_trend || []
   const leaderboard = analytics?.officer_leaderboard || []
@@ -132,6 +139,26 @@ export default function AdminDashboard() {
   const pipeline = analytics?.approval_pipeline || []
   const inventory = analytics?.inventory_status || []
   const recentEntries = analytics?.recent_entries || []
+  const concentration = analytics?.payout_concentration || {}
+  const atRisk = analytics?.at_risk_officers || []
+  const officerTable = analytics?.officer_table || []
+  const comparison = analytics?.monthly_comparison || []
+
+  const comparisonWindow = comparison.slice(-trendMonths)
+  const officerQ = officerQuery.trim().toLowerCase()
+  const filteredOfficers = officerTable
+    .filter(
+      (o) =>
+        !officerQ ||
+        o.name.toLowerCase().includes(officerQ) ||
+        o.email.toLowerCase().includes(officerQ) ||
+        (o.employee_code || '').toLowerCase().includes(officerQ),
+    )
+    .sort((a, b) => {
+      if (officerSort === 'name') return a.name.localeCompare(b.name)
+      if (officerSort === 'cars') return b.cars - a.cars
+      return Number(b.total_payout) - Number(a.total_payout)
+    })
 
   const pipelineTotal = pipeline.reduce((sum, item) => sum + Number(item.count || 0), 0)
   const inventoryTotal = inventory.reduce((sum, item) => sum + Number(item.count || 0), 0)
@@ -249,16 +276,23 @@ export default function AdminDashboard() {
       <div className="grid gap-4 xl:grid-cols-[1.35fr_0.9fr]">
         <Panel
           title="Monthly sales trend"
-          subtitle="Last six months with submitted entries"
+          subtitle={`Last ${trendMonths} months with submitted entries`}
           icon={BarChart3}
           action={
-            <Badge tone="neutral">
-              {current.label || 'Current month'} · {formatNumber(current.cars)} cars
-            </Badge>
+            <Select
+              value={trendMonths}
+              onChange={(e) => setTrendMonths(Number(e.target.value))}
+              className="w-28"
+              aria-label="Trend range"
+            >
+              <option value={3}>3 months</option>
+              <option value={6}>6 months</option>
+              <option value={12}>12 months</option>
+            </Select>
           }
         >
           <LineAreaChart
-            data={monthlyTrend}
+            data={comparisonWindow.length ? comparisonWindow : monthlyTrend}
             valueKey="cars"
             labelKey="label"
             formatValue={(value) => `${formatNumber(value)} cars`}
@@ -351,6 +385,152 @@ export default function AdminDashboard() {
       </div>
 
       <Panel
+        title="Month-over-month comparison"
+        subtitle="Payout exposure across recent months"
+        icon={BarChart3}
+        action={
+          <Select
+            value={trendMonths}
+            onChange={(e) => setTrendMonths(Number(e.target.value))}
+            className="w-28"
+            aria-label="Comparison range"
+          >
+            <option value={3}>3 months</option>
+            <option value={6}>6 months</option>
+            <option value={12}>12 months</option>
+          </Select>
+        }
+      >
+        <HorizontalBarChart
+          data={[...comparisonWindow].reverse()}
+          valueKey="total_payout"
+          labelKey="label"
+          empty="No monthly data yet."
+          formatValue={formatCurrency}
+          detail={(item) =>
+            `${formatNumber(item.cars)} cars · ${formatNumber(item.submissions)} submission${item.submissions === 1 ? '' : 's'}`
+          }
+        />
+      </Panel>
+
+      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <Panel title="Team participation" subtitle="Officers logging sales this month" icon={Percent}>
+          <div className="flex items-end gap-3">
+            <div className="text-4xl font-extrabold text-slate-950 nums">{summary.participation_rate ?? 0}%</div>
+            <div className="pb-1 text-sm text-slate-500">
+              {formatNumber(summary.participation_submitted)} of {formatNumber(summary.participation_total)} approved
+            </div>
+          </div>
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-emerald-500"
+              style={{ width: `${Math.min(100, summary.participation_rate || 0)}%` }}
+            />
+          </div>
+          <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Top officer share</span>
+              <span className="font-mono font-bold text-slate-950 nums">{concentration.top_officer_share ?? 0}%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Top 3 officers</span>
+              <span className="font-mono font-bold text-slate-950 nums">{concentration.top3_officer_share ?? 0}%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="truncate text-slate-500">Top model ({concentration.top_model || '—'})</span>
+              <span className="font-mono font-bold text-slate-950 nums">{concentration.top_model_share ?? 0}%</span>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel title="At-risk officers" subtitle="Approved but no sales logged this month" icon={UserX}>
+          {atRisk.length === 0 ? (
+            <p className="rounded-xl bg-emerald-50 py-8 text-center text-sm font-semibold text-emerald-700">
+              Everyone with an approved account has logged sales this month.
+            </p>
+          ) : (
+            <div className="scroll-thin max-h-72 space-y-2 overflow-y-auto">
+              {atRisk.map((o) => (
+                <div key={o.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-bold text-slate-950">{o.name}</div>
+                    <div className="truncate text-xs text-slate-500">
+                      {o.email}{o.employee_code ? ` · ${o.employee_code}` : ''}
+                    </div>
+                  </div>
+                  <Badge tone={o.last_active === 'Never' ? 'red' : 'amber'}>
+                    {o.last_active === 'Never' ? 'Never logged' : `Last: ${o.last_active}`}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      <Panel
+        title="All officers"
+        subtitle="Search, sort, and open any officer for detail"
+        icon={Users}
+        action={
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                value={officerQuery}
+                onChange={(e) => setOfficerQuery(e.target.value)}
+                placeholder="Search officers"
+                className="h-9 w-40 rounded-lg border border-slate-300 bg-white pl-8 pr-3 text-sm focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10"
+              />
+            </div>
+            <Select value={officerSort} onChange={(e) => setOfficerSort(e.target.value)} className="w-32" aria-label="Sort officers">
+              <option value="payout">By payout</option>
+              <option value="cars">By cars</option>
+              <option value="name">By name</option>
+            </Select>
+          </div>
+        }
+      >
+        {filteredOfficers.length === 0 ? (
+          <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No officers match your search.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-xs font-bold uppercase text-slate-500">
+                  <th className="pb-3">Officer</th>
+                  <th className="pb-3 text-right">Cars</th>
+                  <th className="pb-3 text-right">Months</th>
+                  <th className="pb-3 text-right">Avg/mo</th>
+                  <th className="pb-3">Last active</th>
+                  <th className="pb-3 text-right">Payout</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredOfficers.map((o) => (
+                  <tr
+                    key={o.id}
+                    onClick={() => setSelectedOfficer(o)}
+                    className="cursor-pointer transition-colors hover:bg-slate-50"
+                  >
+                    <td className="py-3">
+                      <div className="font-bold text-slate-950">{o.name}</div>
+                      <div className="text-xs text-slate-500">{o.email}</div>
+                    </td>
+                    <td className="py-3 text-right font-mono font-bold nums">{formatNumber(o.cars)}</td>
+                    <td className="py-3 text-right nums">{formatNumber(o.submissions)}</td>
+                    <td className="py-3 text-right nums">{formatNumber(o.avg_cars)}</td>
+                    <td className="py-3 text-slate-600">{o.last_active}</td>
+                    <td className="py-3 text-right font-mono font-bold text-slate-950 nums">{formatCurrency(o.total_payout)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+
+      <Panel
         title="Recent submissions"
         subtitle="Latest saved sales months across officers"
         icon={Clock3}
@@ -391,6 +571,31 @@ export default function AdminDashboard() {
           </div>
         )}
       </Panel>
+
+      <Modal
+        open={!!selectedOfficer}
+        onClose={() => setSelectedOfficer(null)}
+        title={selectedOfficer?.name}
+        description={selectedOfficer?.email}
+      >
+        {selectedOfficer && (
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Total payout', value: formatCurrency(selectedOfficer.total_payout) },
+              { label: 'Cars sold', value: formatNumber(selectedOfficer.cars) },
+              { label: 'Months logged', value: formatNumber(selectedOfficer.submissions) },
+              { label: 'Avg cars / month', value: formatNumber(selectedOfficer.avg_cars) },
+              { label: 'Last active', value: selectedOfficer.last_active },
+              { label: 'Employee code', value: selectedOfficer.employee_code || '—' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                <div className="text-xs font-semibold text-slate-500">{s.label}</div>
+                <div className="mt-1 text-lg font-extrabold text-slate-950 nums">{s.value}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
