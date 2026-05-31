@@ -23,7 +23,7 @@ const workflowSteps = [
 
 function VisualPanel() {
   return (
-    <section className="relative hidden min-h-[720px] overflow-hidden bg-slate-950 lg:block">
+    <section className="relative order-first h-44 w-full overflow-hidden bg-slate-950 sm:h-56 md:h-64 lg:order-none lg:h-auto lg:min-h-[720px]">
       <img
         src="/auth-showroom.png"
         alt=""
@@ -31,8 +31,10 @@ function VisualPanel() {
         aria-hidden="true"
       />
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-slate-950/20" />
+      {/* Top scrim so the overlaid logo stays readable on the mobile banner. */}
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/70 to-transparent lg:hidden" />
 
-      <div className="absolute bottom-9 left-14 w-[23rem] rounded-2xl border border-white/70 bg-white/80 p-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl">
+      <div className="absolute bottom-9 left-14 hidden w-[23rem] rounded-2xl border border-white/70 bg-white/80 p-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl lg:block">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-xs font-bold uppercase text-slate-500">Access flow</div>
@@ -54,7 +56,7 @@ function VisualPanel() {
         </div>
       </div>
 
-      <div className="absolute bottom-12 right-12 grid grid-cols-3 gap-1.5">
+      <div className="absolute bottom-12 right-12 hidden grid-cols-3 gap-1.5 lg:grid">
         <span className="h-3 w-3 rounded-full bg-white shadow-sm" />
         <span className="h-3 w-3 rounded-full bg-white shadow-sm" />
         <span className="h-3 w-3 rounded-full bg-white shadow-sm" />
@@ -67,17 +69,18 @@ export function AuthLayout({ children }) {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen overflow-hidden bg-slate-100 px-4 py-5 sm:px-6 lg:px-10">
+    <div className="min-h-screen overflow-x-hidden bg-slate-100 px-4 py-5 sm:px-6 lg:px-10">
       <main className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-7xl items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 18, scale: 0.985 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.42, ease: 'easeOut' }}
-          className="relative grid w-full overflow-hidden rounded-[2rem] border border-white bg-white shadow-[0_35px_90px_-45px_rgba(15,23,42,0.45)] lg:min-h-[720px] lg:grid-cols-[0.92fr_1.08fr]"
+          className="relative flex w-full flex-col overflow-hidden rounded-[2rem] border border-white bg-white shadow-[0_35px_90px_-45px_rgba(15,23,42,0.45)] lg:grid lg:min-h-[720px] lg:grid-cols-[0.92fr_1.08fr]"
         >
           <header className="absolute inset-x-0 top-0 z-20 flex h-24 items-center justify-between px-6 sm:px-10 lg:px-12">
-            <Logo variant="ink" />
-            <nav className="hidden items-center gap-10 text-sm font-semibold md:flex">
+            <Logo variant="light" className="lg:hidden" />
+            <Logo variant="ink" className="hidden lg:block" />
+            <nav className="hidden items-center gap-10 text-sm font-semibold lg:flex">
               {navItems.map((item) => (
                 <Link
                   key={item.to}
@@ -94,7 +97,7 @@ export function AuthLayout({ children }) {
             </nav>
           </header>
 
-          <section className="relative z-10 flex min-h-[calc(100vh-2.5rem)] items-center px-6 pb-9 pt-28 sm:px-12 lg:min-h-[720px] lg:px-16">
+          <section className="relative z-10 flex items-center px-6 pb-9 pt-9 sm:px-12 lg:min-h-[720px] lg:px-16 lg:pt-28">
             <div className="w-full max-w-md">
               {children}
 
