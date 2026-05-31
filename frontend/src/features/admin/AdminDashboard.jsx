@@ -458,7 +458,7 @@ export default function AdminDashboard() {
                       {o.email}{o.employee_code ? ` · ${o.employee_code}` : ''}
                     </div>
                   </div>
-                  <Badge tone={o.last_active === 'Never' ? 'red' : 'amber'}>
+                  <Badge tone={o.last_active === 'Never' ? 'red' : 'amber'} className="shrink-0 whitespace-nowrap">
                     {o.last_active === 'Never' ? 'Never logged' : `Last: ${o.last_active}`}
                   </Badge>
                 </div>
