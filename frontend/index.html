@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0D0D0F" />
+    <meta name="theme-color" content="#FFFFFF" />
     <title>Nippon Toyota · Incentive Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,9 +19,9 @@
       // Apply the saved/system theme before paint to avoid a flash.
       (function () {
         try {
+          // Default to light; only go dark if the user explicitly chose it before.
           var saved = localStorage.getItem('nt_theme')
-          var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
-          if (dark) document.documentElement.classList.add('dark')
+          if (saved === 'dark') document.documentElement.classList.add('dark')
         } catch (e) {}
       })()
     </script>
