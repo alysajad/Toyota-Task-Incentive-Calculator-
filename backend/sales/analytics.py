@@ -98,6 +98,8 @@ def build_admin_analytics() -> dict:
         lambda: {"label": "", "entries": 0, "cars": 0, "total_payout": Decimal("0")}
     )
     recent_entries = []
+    current = date.today()
+    current_month_officer_ids = set()
 
     for entry in entries:
         entry_cars, entry_payout, slab_label = _entry_calc(entry)
@@ -121,6 +123,7 @@ def build_admin_analytics() -> dict:
 
         officer = entry.sales_officer
         if officer.id not in officers:
+            # Entries are ordered newest-first, so first sight = latest activity.
             officers[officer.id] = {
                 "id": officer.id,
                 "name": _full_name(officer),
@@ -129,10 +132,14 @@ def build_admin_analytics() -> dict:
                 "cars": 0,
                 "submissions": 0,
                 "total_payout": Decimal("0"),
+                "last_active": f"{MONTH_NAMES[entry.month - 1]} {entry.year}",
             }
         officers[officer.id]["cars"] += entry_cars
         officers[officer.id]["submissions"] += 1
         officers[officer.id]["total_payout"] += entry_payout
+
+        if entry.year == current.year and entry.month == current.month:
+            current_month_officer_ids.add(officer.id)
 
         slabs[slab_label]["label"] = slab_label
         slabs[slab_label]["entries"] += 1
@@ -186,7 +193,6 @@ def build_admin_analytics() -> dict:
     ):
         status_counts[row["status"]] = row["count"]
 
-    current = date.today()
     current_month = monthly.get(
         (current.year, current.month),
         {
@@ -212,6 +218,53 @@ def build_admin_analytics() -> dict:
     )
     active_officers = len(officers)
 
+    # --- Participation + at-risk officers (approved but no entry this month) ---
+    approved_rows = list(
+        User.objects.filter(
+            role=Role.SALES_OFFICER, status=AccountStatus.APPROVED
+        ).values("id", "first_name", "last_name", "email", "employee_code")
+    )
+    approved_total = len(approved_rows)
+    submitted_this_month = len(current_month_officer_ids)
+    participation_rate = (
+        round(submitted_this_month / approved_total * 100) if approved_total else 0
+    )
+    at_risk_officers = []
+    for row in approved_rows:
+        if row["id"] in current_month_officer_ids:
+            continue
+        agg = officers.get(row["id"])
+        name = f'{row["first_name"]} {row["last_name"]}'.strip() or row["email"]
+        at_risk_officers.append(
+            {
+                "id": row["id"],
+                "name": name,
+                "email": row["email"],
+                "employee_code": row["employee_code"],
+                "last_active": agg["last_active"] if agg else "Never",
+                "lifetime_payout": _money(agg["total_payout"]) if agg else "0.00",
+            }
+        )
+    at_risk_officers.sort(key=lambda r: r["last_active"] == "Never", reverse=True)
+
+    # --- Payout concentration (risk lens) ---
+    ranked_officers = sorted(
+        officers.values(), key=lambda r: (r["total_payout"], r["cars"]), reverse=True
+    )
+
+    def _share(part, whole):
+        return round(float(Decimal(part) / Decimal(whole) * 100), 1) if whole else 0.0
+
+    top_officer_share = (
+        _share(ranked_officers[0]["total_payout"], total_payout) if ranked_officers else 0.0
+    )
+    top3_officer_share = (
+        _share(sum((o["total_payout"] for o in ranked_officers[:3]), Decimal("0")), total_payout)
+        if ranked_officers
+        else 0.0
+    )
+    top_model_share = _share(model_mix[0]["cars"], total_cars) if model_mix and total_cars else 0.0
+
     return {
         "summary": {
             "total_cars": total_cars,
@@ -228,11 +281,40 @@ def build_admin_analytics() -> dict:
             "retired_models": max(total_models - active_models, 0),
             "approved_officers": status_counts[AccountStatus.APPROVED],
             "pending_officers": status_counts[AccountStatus.PENDING],
+            "participation_rate": participation_rate,
+            "participation_submitted": submitted_this_month,
+            "participation_total": approved_total,
             "ytd_cars": ytd_cars,
             "ytd_payout": _money(ytd_payout),
             "ytd_year": current.year,
             **trend,
         },
+        "payout_concentration": {
+            "top_officer": ranked_officers[0]["name"] if ranked_officers else None,
+            "top_officer_share": top_officer_share,
+            "top3_officer_share": top3_officer_share,
+            "top_model": model_mix[0]["model"] if model_mix else None,
+            "top_model_share": top_model_share,
+        },
+        "at_risk_officers": at_risk_officers,
+        "officer_table": [
+            {
+                "id": o["id"],
+                "name": o["name"],
+                "email": o["email"],
+                "employee_code": o["employee_code"],
+                "cars": o["cars"],
+                "submissions": o["submissions"],
+                "avg_cars": round(o["cars"] / o["submissions"], 1) if o["submissions"] else 0,
+                "last_active": o["last_active"],
+                "total_payout": _money(o["total_payout"]),
+            }
+            for o in ranked_officers
+        ],
+        "monthly_comparison": [
+            {**row, "total_payout": _money(row["total_payout"])}
+            for row in sorted(monthly.values(), key=lambda r: (r["year"], r["month"]))[-12:]
+        ],
         "current_month": {
             **current_month,
             "total_payout": _money(current_month["total_payout"]),
@@ -367,6 +449,7 @@ def build_officer_analytics(user) -> dict:
     )
 
     submission_count = len(entries)
+    avg_cars = round(total_cars / submission_count, 1) if submission_count else 0
 
     chronological = sorted(monthly, key=lambda r: (r["year"], r["month"]))
     trend = _trend_delta(chronological)
@@ -376,18 +459,60 @@ def build_officer_analytics(user) -> dict:
         Decimal("0"),
     )
 
+    # --- Peer rank (by total cars sold, across all officers who have logged) ---
+    all_totals = list(
+        SalesLine.objects.values("entry__sales_officer")
+        .annotate(cars=Sum("cars_sold"))
+        .order_by("-cars")
+    )
+    rank_total = len(all_totals)
+    if submission_count and total_cars > 0 and rank_total:
+        higher = sum(1 for t in all_totals if (t["cars"] or 0) > total_cars)
+        rank = higher + 1
+        percentile = round((1 - higher / rank_total) * 100)
+    else:
+        rank = None
+        percentile = None
+
+    # --- Submission streak (consecutive months ending at the latest entry) ---
+    months_set = {(r["year"], r["month"]) for r in monthly}
+    streak = 0
+    if months_set:
+        y, m = max(months_set)
+        streak = 1
+        while True:
+            pm = 12 if m == 1 else m - 1
+            py = y - 1 if m == 1 else y
+            if (py, pm) in months_set:
+                streak += 1
+                y, m = py, pm
+            else:
+                break
+
+    # --- Pace vs personal average + saved-month next-tier nudge ---
+    cur_cars = current_month["cars"]
+    pace_pct = round((cur_cars / avg_cars - 1) * 100) if avg_cars else None
+    current_next_tier = (
+        compute_payout([{"car_model": None, "cars_sold": cur_cars}]).get("next_tier")
+        if cur_cars > 0
+        else None
+    )
+
     return {
         "summary": {
             "total_cars": total_cars,
             "total_payout": _money(total_payout),
             "submissions": submission_count,
-            "avg_cars_per_submission": round(total_cars / submission_count, 1)
-            if submission_count
-            else 0,
+            "avg_cars_per_submission": avg_cars,
             "best_month_label": best_month["label"] if best_month else "",
             "best_month_payout": _money(best_month["total_payout"])
             if best_month
             else "0.00",
+            "rank": rank,
+            "rank_total": rank_total,
+            "percentile": percentile,
+            "streak": streak,
+            "pace_pct": pace_pct,
             "ytd_cars": ytd_cars,
             "ytd_payout": _money(ytd_payout),
             "ytd_year": current.year,
@@ -396,6 +521,7 @@ def build_officer_analytics(user) -> dict:
         "current_month": {
             **current_month,
             "total_payout": _money(current_month["total_payout"]),
+            "next_tier": current_next_tier,
         },
         "monthly_trend": [
             {**row, "total_payout": _money(row["total_payout"])}
