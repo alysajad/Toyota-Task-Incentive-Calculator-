@@ -221,26 +221,23 @@ Free, persistent stack: **Supabase** (Postgres) + **Render** (API) + **Cloudflar
    - `CORS_ALLOWED_ORIGINS` → leave blank for now; fill after step 3.
 4. Deploy. Confirm `https://<your-render-host>/api/health/` returns `{"status":"ok"}`.
 
-### 3. SPA → Cloudflare Pages
-1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages → Create → Pages → Connect to Git** → authorize GitHub and pick this repo.
+### 3. SPA → Cloudflare (Workers static assets)
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages → Create → Import a repository** → authorize GitHub and pick this repo.
 2. Build settings:
-   - **Framework preset:** `Vite` (or `None`)
-   - **Root directory (advanced):** `frontend`
+   - **Root directory:** `frontend`
    - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-3. Under **Environment variables (Production)** add:
-   - `VITE_API_BASE_URL` = `https://<your-render-host>/api`
-   - (`.nvmrc` already pins Node 22; no `NODE_VERSION` var needed.)
-4. **Save and Deploy.** You'll get a `https://<project>.pages.dev` URL. `public/_redirects` (`/*  /index.html  200`) makes client-side routes like `/admin` resolve.
+   - **Deploy command:** `npx wrangler deploy`
+3. Add a **build variable**: `VITE_API_BASE_URL` = `https://<your-render-host>/api`. (Node 22 comes from `.nvmrc`.)
+4. **Create / Deploy.** `frontend/wrangler.jsonc` uploads `dist/` as static assets with `not_found_handling: "single-page-application"`, so client routes like `/admin` resolve without a `_redirects` file. You'll get a `https://<project>.<account>.workers.dev` URL.
 
 ### 4. Wire the two together
-1. Back in Render, set `CORS_ALLOWED_ORIGINS` = your `https://<project>.pages.dev` URL → **Save** (triggers a redeploy).
-2. Open the Pages URL and log in with the [demo credentials](#-demo-credentials).
+1. Back in Render, set `CORS_ALLOWED_ORIGINS` = your `https://<project>.<account>.workers.dev` URL → **Save** (triggers a redeploy).
+2. Open the Workers URL and log in with the [demo credentials](#-demo-credentials).
 
 ### 5. Keep the free API warm (avoid cold starts)
 Render free web services sleep after ~15 min idle (next request waits ~30–60s). Point a free uptime monitor — [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org) — at `https://<your-render-host>/api/health/` every 10 minutes so evaluators never hit a cold start.
 
-> Changing the frontend host? `VITE_API_BASE_URL` is the only required env var, the build is always `npm run build` → `dist`, and SPA routing needs either `public/_redirects` (Cloudflare/Netlify) or a rewrite to `/index.html` (Vercel via `vercel.json`, kept in-repo as a fallback).
+> Changing the frontend host? `VITE_API_BASE_URL` is the only required env var and the build is always `npm run build` → `dist`. SPA routing is handled by `wrangler.jsonc` (Cloudflare) or `vercel.json` (Vercel, kept in-repo as a fallback).
 
 ---
 
