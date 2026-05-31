@@ -110,7 +110,7 @@ export default function CarInventory() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-ink-400">
+        <p className="text-sm text-muted">
           The catalogue your officers log sales against. Toggle a model off to retire it.
         </p>
         <Button onClick={openCreate} size="sm">
@@ -149,9 +149,9 @@ export default function CarInventory() {
             />
           </div>
         ) : (
-          <div className="divide-y divide-sand-200">
+          <div className="divide-y divide-line">
             {/* header row (desktop) */}
-            <div className="hidden grid-cols-[1fr_1fr_auto_auto] gap-4 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-ink-400 sm:grid">
+            <div className="hidden grid-cols-[1fr_1fr_auto_auto] gap-4 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted sm:grid">
               <span>Model</span>
               <span>Variant · Suffix</span>
               <span>Status</span>
@@ -166,14 +166,14 @@ export default function CarInventory() {
                 className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-3.5 sm:grid-cols-[1fr_1fr_auto_auto]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sand-100 text-ink">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-inset text-content">
                     <Car className="h-4 w-4" />
                   </div>
-                  <span className="font-semibold text-ink">{car.model_name}</span>
+                  <span className="font-semibold text-content">{car.model_name}</span>
                 </div>
-                <div className="hidden text-sm text-ink-400 sm:block">
+                <div className="hidden text-sm text-muted sm:block">
                   {car.variant || '—'}
-                  {car.base_suffix && <span className="text-ink-400/60"> · {car.base_suffix}</span>}
+                  {car.base_suffix && <span className="text-muted/60"> · {car.base_suffix}</span>}
                 </div>
                 <div className="hidden sm:block">
                   <Badge tone={car.is_active ? 'green' : 'neutral'}>
@@ -182,7 +182,7 @@ export default function CarInventory() {
                 </div>
                 <div className="flex items-center justify-end gap-1">
                   <IconButton onClick={() => toggleActive(car)} aria-label="Toggle active" title={car.is_active ? 'Retire' : 'Reactivate'}>
-                    <Power className={`h-4 w-4 ${car.is_active ? 'text-emerald-500' : 'text-ink-400'}`} />
+                    <Power className={`h-4 w-4 ${car.is_active ? 'text-emerald-500' : 'text-muted'}`} />
                   </IconButton>
                   <IconButton onClick={() => openEdit(car)} aria-label="Edit">
                     <Pencil className="h-4 w-4" />
@@ -240,14 +240,14 @@ export default function CarInventory() {
               />
             </Field>
           </div>
-          <label className="flex items-center gap-2.5 rounded-xl border border-sand-200 bg-sand-50 px-3.5 py-3">
+          <label className="flex items-center gap-2.5 rounded-xl border border-line bg-surface-soft px-3.5 py-3">
             <input
               type="checkbox"
               checked={form.is_active}
               onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
-              className="h-4 w-4 rounded border-sand-300 text-toyota focus:ring-toyota"
+              className="h-4 w-4 rounded border-line text-toyota focus:ring-toyota"
             />
-            <span className="text-sm font-medium text-ink">Active — available for sales logging</span>
+            <span className="text-sm font-medium text-content">Active — available for sales logging</span>
           </label>
         </form>
       </Modal>

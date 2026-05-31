@@ -94,11 +94,11 @@ export default function RegisterPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50">
             <CheckCircle2 className="h-8 w-8 text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-950">
+          <h2 className="text-2xl font-extrabold text-content">
             Request received
           </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            Your account is <span className="font-semibold text-slate-900">pending admin approval</span>.
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Your account is <span className="font-semibold text-content">pending admin approval</span>.
             You'll be cleared to sign in once an administrator grants access.
           </p>
           <Button onClick={() => navigate('/login')} className="mt-6 w-full" size="lg">
@@ -115,10 +115,10 @@ export default function RegisterPage() {
         <div className="mb-2 text-xs font-bold uppercase text-toyota">
           Sales officer access
         </div>
-        <h2 className="text-3xl font-extrabold text-slate-950">
+        <h2 className="text-3xl font-extrabold text-content">
           Create account
         </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-muted">
           Submit your Nippon Toyota email and assigned sales officer code for administrator approval.
         </p>
       </div>
@@ -180,7 +180,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-muted">
         Already have an account?{' '}
         <Link to="/login" className="font-semibold text-toyota hover:text-toyota-700">
           Sign in

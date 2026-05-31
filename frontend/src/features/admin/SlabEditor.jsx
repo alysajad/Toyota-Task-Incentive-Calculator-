@@ -173,9 +173,9 @@ export default function SlabEditor() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-ink-400">
+      <p className="text-sm text-muted">
         Define the tiered rate card. Tiers chain automatically from{' '}
-        <span className="font-semibold text-ink">1 car</span> upward — the top tier is always
+        <span className="font-semibold text-content">1 car</span> upward — the top tier is always
         open-ended. Overlaps and gaps are impossible by construction and verified live by the server.
       </p>
 
@@ -209,7 +209,7 @@ export default function SlabEditor() {
 
       {/* Editor rows */}
       <Card className="p-5">
-        <div className="mb-4 hidden grid-cols-[40px_1fr_1fr_1fr_40px] items-center gap-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400 sm:grid">
+        <div className="mb-4 hidden grid-cols-[40px_1fr_1fr_1fr_40px] items-center gap-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted sm:grid">
           <span>#</span>
           <span>From (cars)</span>
           <span>Up to (cars)</span>
@@ -236,9 +236,9 @@ export default function SlabEditor() {
                   </div>
 
                   {/* From (derived) */}
-                  <div className="flex h-11 items-center rounded-xl border border-sand-200 bg-sand-100 px-3.5">
-                    <span className="font-mono text-sm font-semibold text-ink nums">{t.min}</span>
-                    <span className="ml-1.5 text-xs text-ink-400 sm:hidden">from</span>
+                  <div className="flex h-11 items-center rounded-xl border border-line bg-surface-inset px-3.5">
+                    <span className="font-mono text-sm font-semibold text-content nums">{t.min}</span>
+                    <span className="ml-1.5 text-xs text-muted sm:hidden">from</span>
                   </div>
 
                   {/* Up to */}
@@ -274,7 +274,7 @@ export default function SlabEditor() {
                   <button
                     onClick={() => removeTier(t.id)}
                     disabled={tiers.length <= 1}
-                    className="flex h-9 w-9 items-center justify-center justify-self-end rounded-lg text-ink-400 transition-colors hover:bg-toyota-50 hover:text-toyota disabled:opacity-30 disabled:hover:bg-transparent"
+                    className="flex h-9 w-9 items-center justify-center justify-self-end rounded-lg text-muted transition-colors hover:bg-toyota-50 hover:text-toyota disabled:opacity-30 disabled:hover:bg-transparent"
                     aria-label="Remove tier"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -287,7 +287,7 @@ export default function SlabEditor() {
 
         <button
           onClick={addTier}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-sand-300 py-3 text-sm font-semibold text-ink-400 transition-colors hover:border-toyota/40 hover:bg-toyota-50/40 hover:text-toyota"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line py-3 text-sm font-semibold text-muted transition-colors hover:border-toyota/40 hover:bg-toyota-50/40 hover:text-toyota"
         >
           <Plus className="h-4 w-4" />
           Add tier

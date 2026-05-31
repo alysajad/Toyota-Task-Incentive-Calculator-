@@ -127,31 +127,31 @@ export function ExportMenu({ params = {}, label = 'Export CSV', size = 'sm', ali
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.12 }}
-          className="fixed z-50 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-float"
+          className="fixed z-50 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-float"
           style={menuStyle}
         >
           <button
             type="button"
             role="menuitem"
             onClick={() => run('summary')}
-            className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-toyota/30"
+            className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-toyota/30"
           >
             <FileSpreadsheet className="mt-0.5 h-4 w-4 shrink-0 text-toyota" />
             <span className="min-w-0">
-              <span className="block text-sm font-bold text-slate-950">By month</span>
-              <span className="block text-xs leading-5 text-slate-500">One row per saved month with tier &amp; payout</span>
+              <span className="block text-sm font-bold text-content">By month</span>
+              <span className="block text-xs leading-5 text-muted">One row per saved month with tier &amp; payout</span>
             </span>
           </button>
           <button
             type="button"
             role="menuitem"
             onClick={() => run('lines')}
-            className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-toyota/30"
+            className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-toyota/30"
           >
             <Layers className="mt-0.5 h-4 w-4 shrink-0 text-toyota" />
             <span className="min-w-0">
-              <span className="block text-sm font-bold text-slate-950">By car model</span>
-              <span className="block text-xs leading-5 text-slate-500">Per-model breakdown across every month</span>
+              <span className="block text-sm font-bold text-content">By car model</span>
+              <span className="block text-xs leading-5 text-muted">Per-model breakdown across every month</span>
             </span>
           </button>
         </motion.div>
@@ -169,7 +169,7 @@ export function ExportMenu({ params = {}, label = 'Export CSV', size = 'sm', ali
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          'inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 shadow-sm',
+          'inline-flex items-center gap-2 rounded-lg border border-line bg-surface font-semibold text-content shadow-sm',
           'transition-colors duration-200 cursor-pointer hover:border-toyota/40 hover:bg-toyota-50 hover:text-toyota-800',
           'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-toyota/20 disabled:pointer-events-none disabled:opacity-50',
           sizes[size],

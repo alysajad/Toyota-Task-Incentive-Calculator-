@@ -12,7 +12,7 @@ const ICONS = {
 const ACCENT = {
   success: 'text-emerald-500',
   error: 'text-toyota',
-  info: 'text-ink-400',
+  info: 'text-muted',
 }
 
 export function ToastProvider({ children }) {

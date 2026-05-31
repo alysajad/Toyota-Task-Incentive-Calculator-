@@ -8,14 +8,14 @@ const buttonVariants = {
     'border border-toyota-700 bg-toyota text-white shadow-sm shadow-toyota/20 ' +
     'hover:bg-toyota-600 focus-visible:ring-toyota/35',
   secondary:
-    'border border-slate-300 bg-white text-slate-800 shadow-sm hover:border-slate-400 ' +
-    'hover:bg-slate-50 focus-visible:ring-slate-300',
+    'border border-line bg-surface text-content shadow-sm hover:border-line ' +
+    'hover:bg-surface-soft focus-visible:ring-line',
   outline:
-    'border border-slate-300 bg-white text-slate-800 shadow-sm hover:border-toyota/40 ' +
+    'border border-line bg-surface text-content shadow-sm hover:border-toyota/40 ' +
     'hover:bg-toyota-50 hover:text-toyota-800 focus-visible:ring-toyota/25',
   ghost:
-    'border border-transparent bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-950 ' +
-    'focus-visible:ring-slate-300',
+    'border border-transparent bg-transparent text-muted hover:bg-surface-inset hover:text-content ' +
+    'focus-visible:ring-line',
   danger:
     'border border-red-700 bg-red-600 text-white shadow-sm shadow-red-600/20 hover:bg-red-700 ' +
     'focus-visible:ring-red-300',
@@ -55,10 +55,10 @@ export const Button = forwardRef(function Button(
 
 const inputTones = {
   dark:
-    'border-slate-700 bg-slate-950/70 text-white placeholder:text-slate-500 ' +
+    'border-slate-700 bg-slate-950/70 text-white placeholder:text-muted ' +
     'focus:border-toyota/70 focus:ring-toyota/25',
   light:
-    'border-slate-300 bg-white text-slate-950 placeholder:text-slate-400 ' +
+    'border-line bg-surface text-content placeholder:text-subtle ' +
     'focus:border-toyota/60 focus:ring-toyota/20',
 }
 
@@ -71,7 +71,7 @@ export const Input = forwardRef(function Input(
       ref={ref}
       className={cn(
         'h-11 w-full rounded-lg border px-3.5 text-[15px] font-medium outline-none',
-        'transition-colors duration-200 focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-100',
+        'transition-colors duration-200 focus:ring-4 disabled:cursor-not-allowed disabled:bg-surface-inset',
         inputTones[tone],
         invalid && 'border-red-400 focus:border-red-500 focus:ring-red-100',
         className,
@@ -91,7 +91,7 @@ export const Select = forwardRef(function Select(
       ref={ref}
       className={cn(
         'h-11 rounded-lg border px-3 pr-9 text-[15px] font-semibold outline-none',
-        'transition-colors duration-200 focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-100',
+        'transition-colors duration-200 focus:ring-4 disabled:cursor-not-allowed disabled:bg-surface-inset',
         inputTones[tone],
         invalid && 'border-red-400 focus:border-red-500 focus:ring-red-100',
         className,
@@ -105,8 +105,8 @@ export const Select = forwardRef(function Select(
 })
 
 const labelTones = {
-  dark: 'text-slate-300',
-  light: 'text-slate-700',
+  dark: 'text-subtle',
+  light: 'text-content',
 }
 
 export const Field = forwardRef(function Field(
@@ -128,7 +128,7 @@ export const Field = forwardRef(function Field(
       )}
       {children}
       {hint && !error && (
-        <span className={cn('mt-1.5 block text-xs', tone === 'dark' ? 'text-slate-400' : 'text-slate-500')}>
+        <span className={cn('mt-1.5 block text-xs', tone === 'dark' ? 'text-subtle' : 'text-muted')}>
           {hint}
         </span>
       )}
@@ -144,8 +144,8 @@ export const Card = forwardRef(function Card({ className, children, ...props }, 
     <div
       ref={ref}
       className={cn(
-        'rounded-xl border border-slate-200 shadow-sm shadow-slate-200/60',
-        !hasCustomBg && 'bg-white',
+        'rounded-xl border border-line shadow-sm shadow-slate-200/60',
+        !hasCustomBg && 'bg-surface',
         className,
       )}
       {...props}
@@ -156,7 +156,7 @@ export const Card = forwardRef(function Card({ className, children, ...props }, 
 })
 
 export function Skeleton({ className }) {
-  return <div className={cn('animate-pulse rounded-lg bg-slate-200/80', className)} />
+  return <div className={cn('animate-pulse rounded-lg bg-line/80', className)} />
 }
 
 export function Spinner({ className }) {
@@ -167,7 +167,7 @@ const badgeTones = {
   red: 'border-red-200 bg-red-50 text-red-700',
   amber: 'border-amber-200 bg-amber-50 text-amber-800',
   green: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  neutral: 'border-slate-200 bg-slate-100 text-slate-700',
+  neutral: 'border-line bg-surface-inset text-content',
 }
 
 export function Badge({ tone = 'neutral', className, children }) {
@@ -208,8 +208,8 @@ export const IconButton = forwardRef(function IconButton(
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500',
-        'transition-colors duration-200 cursor-pointer hover:bg-slate-100 hover:text-slate-950',
+        'inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted',
+        'transition-colors duration-200 cursor-pointer hover:bg-surface-inset hover:text-content',
         'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-toyota/20',
         'disabled:pointer-events-none disabled:opacity-40',
         className,
@@ -225,18 +225,18 @@ export function EmptyState({ icon: Icon, title, description, action, className }
   return (
     <div
       className={cn(
-        'flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300',
-        'bg-slate-50 px-6 py-10 text-center',
+        'flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-line',
+        'bg-surface-soft px-6 py-10 text-center',
         className,
       )}
     >
       {Icon && (
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-surface text-muted shadow-sm">
           <Icon className="h-6 w-6" />
         </div>
       )}
-      <h3 className="text-base font-bold text-slate-950">{title}</h3>
-      {description && <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">{description}</p>}
+      <h3 className="text-base font-bold text-content">{title}</h3>
+      {description && <p className="mt-1 max-w-sm text-sm leading-6 text-muted">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )

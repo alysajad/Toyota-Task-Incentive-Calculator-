@@ -1,9 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // Semantic, theme-aware tokens (light/dark swap via CSS vars in index.css).
+        // Brand + always-dark accent panels stay fixed; only neutral surfaces/text flip.
+        surface: {
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          soft: 'rgb(var(--surface-soft) / <alpha-value>)',
+          inset: 'rgb(var(--surface-inset) / <alpha-value>)',
+        },
+        line: 'rgb(var(--line) / <alpha-value>)',
+        content: 'rgb(var(--content) / <alpha-value>)',
+        muted: 'rgb(var(--muted) / <alpha-value>)',
+        subtle: 'rgb(var(--subtle) / <alpha-value>)',
         toyota: {
           DEFAULT: '#eb0a1e',
           50: '#fef2f3',

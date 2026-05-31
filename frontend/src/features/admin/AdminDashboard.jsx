@@ -40,7 +40,7 @@ const quickLinks = [
 
 function AnalyticsCard({ label, value, caption, icon: Icon, tone = 'slate', to }) {
   const toneClasses = {
-    slate: 'bg-slate-100 text-slate-700',
+    slate: 'bg-surface-inset text-content',
     red: 'bg-toyota-50 text-toyota',
     amber: 'bg-amber-50 text-amber-700',
     green: 'bg-emerald-50 text-emerald-700',
@@ -48,16 +48,16 @@ function AnalyticsCard({ label, value, caption, icon: Icon, tone = 'slate', to }
   }
 
   const body = (
-    <Card className="group h-full p-4 transition-colors duration-200 hover:border-slate-300 hover:shadow-float">
+    <Card className="group h-full p-4 transition-colors duration-200 hover:border-line hover:shadow-float">
       <div className="flex items-start justify-between gap-3">
         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${toneClasses[tone]}`}>
           <Icon className="h-5 w-5" />
         </div>
-        {to && <ArrowUpRight className="h-4 w-4 text-slate-400 transition-colors group-hover:text-toyota" />}
+        {to && <ArrowUpRight className="h-4 w-4 text-subtle transition-colors group-hover:text-toyota" />}
       </div>
-      <div className="mt-4 text-2xl font-extrabold text-slate-950 nums">{value}</div>
-      <div className="mt-1 text-sm font-bold text-slate-800">{label}</div>
-      {caption && <div className="mt-1 text-xs leading-5 text-slate-500">{caption}</div>}
+      <div className="mt-4 text-2xl font-extrabold text-content nums">{value}</div>
+      <div className="mt-1 text-sm font-bold text-content">{label}</div>
+      {caption && <div className="mt-1 text-xs leading-5 text-muted">{caption}</div>}
     </Card>
   )
 
@@ -76,10 +76,10 @@ function Panel({ title, subtitle, icon: Icon, action, children, className }) {
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            {Icon && <Icon className="h-4 w-4 text-slate-500" />}
-            <h3 className="font-bold text-slate-950">{title}</h3>
+            {Icon && <Icon className="h-4 w-4 text-muted" />}
+            <h3 className="font-bold text-content">{title}</h3>
           </div>
-          {subtitle && <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-xs leading-5 text-muted">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
               <h2 className="mt-3 max-w-2xl text-2xl font-extrabold sm:text-3xl">
                 Live incentive performance from your current database.
               </h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">
                 Welcome back, {fullName(user).split(' ')[0]}. Track sales volume, payout exposure, top officers, model demand, tier usage, and approval health from the records already saved in the system.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
                   prevLabel={summary.prev_label}
                 />
                 {summary.ytd_payout != null && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-slate-200">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-surface/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-slate-200">
                     {summary.ytd_year} YTD · {formatCurrency(summary.ytd_payout)} · {formatNumber(summary.ytd_cars)} cars
                   </span>
                 )}
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
                   <Link
                     key={to}
                     to={to}
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/[0.08]"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-surface/[0.04] px-3 py-2 text-sm font-bold text-white transition-colors duration-200 hover:bg-surface/[0.08]"
                   >
                     <Icon className="h-4 w-4 text-toyota-200" />
                     {label}
@@ -305,23 +305,23 @@ export default function AdminDashboard() {
           icon={Trophy}
         >
           {leaderboard.length === 0 ? (
-            <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No officer submissions yet.</p>
+            <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">No officer submissions yet.</p>
           ) : (
             <div className="space-y-3">
               {leaderboard.map((officer, index) => (
-                <div key={officer.id} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3">
+                <div key={officer.id} className="flex items-center gap-3 rounded-xl border border-line px-3 py-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-950 text-sm font-extrabold text-white nums">
                     {index + 1}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold text-slate-950">{officer.name}</div>
-                    <div className="truncate text-xs text-slate-500">{officer.email}</div>
+                    <div className="truncate text-sm font-bold text-content">{officer.name}</div>
+                    <div className="truncate text-xs text-muted">{officer.email}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono text-sm font-bold text-slate-950 nums">
+                    <div className="font-mono text-sm font-bold text-content nums">
                       {formatCurrency(officer.total_payout)}
                     </div>
-                    <div className="text-xs text-slate-500">{formatNumber(officer.cars)} cars</div>
+                    <div className="text-xs text-muted">{formatNumber(officer.cars)} cars</div>
                   </div>
                 </div>
               ))}
@@ -361,7 +361,7 @@ export default function AdminDashboard() {
         <Panel title="Approval and inventory health" subtitle="Operational queues at a glance" icon={Users}>
           <div className="space-y-5">
             <div>
-              <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase text-slate-500">
+              <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase text-muted">
                 <span>Officer pipeline</span>
                 <span>{formatNumber(pipelineTotal)} total</span>
               </div>
@@ -374,7 +374,7 @@ export default function AdminDashboard() {
             </div>
 
             <div>
-              <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase text-slate-500">
+              <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase text-muted">
                 <span>Inventory status</span>
                 <span>{formatNumber(inventoryTotal)} models</span>
               </div>
@@ -416,29 +416,29 @@ export default function AdminDashboard() {
       <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <Panel title="Team participation" subtitle="Officers logging sales this month" icon={Percent}>
           <div className="flex items-end gap-3">
-            <div className="text-4xl font-extrabold text-slate-950 nums">{summary.participation_rate ?? 0}%</div>
-            <div className="pb-1 text-sm text-slate-500">
+            <div className="text-4xl font-extrabold text-content nums">{summary.participation_rate ?? 0}%</div>
+            <div className="pb-1 text-sm text-muted">
               {formatNumber(summary.participation_submitted)} of {formatNumber(summary.participation_total)} approved
             </div>
           </div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-surface-inset">
             <div
               className="h-full rounded-full bg-emerald-500"
               style={{ width: `${Math.min(100, summary.participation_rate || 0)}%` }}
             />
           </div>
-          <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm">
+          <div className="mt-5 space-y-2 border-t border-line pt-4 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-slate-500">Top officer share</span>
-              <span className="font-mono font-bold text-slate-950 nums">{concentration.top_officer_share ?? 0}%</span>
+              <span className="text-muted">Top officer share</span>
+              <span className="font-mono font-bold text-content nums">{concentration.top_officer_share ?? 0}%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-500">Top 3 officers</span>
-              <span className="font-mono font-bold text-slate-950 nums">{concentration.top3_officer_share ?? 0}%</span>
+              <span className="text-muted">Top 3 officers</span>
+              <span className="font-mono font-bold text-content nums">{concentration.top3_officer_share ?? 0}%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="truncate text-slate-500">Top model ({concentration.top_model || '—'})</span>
-              <span className="font-mono font-bold text-slate-950 nums">{concentration.top_model_share ?? 0}%</span>
+              <span className="truncate text-muted">Top model ({concentration.top_model || '—'})</span>
+              <span className="font-mono font-bold text-content nums">{concentration.top_model_share ?? 0}%</span>
             </div>
           </div>
         </Panel>
@@ -451,10 +451,10 @@ export default function AdminDashboard() {
           ) : (
             <div className="scroll-thin max-h-72 space-y-2 overflow-y-auto">
               {atRisk.map((o) => (
-                <div key={o.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
+                <div key={o.id} className="flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2.5">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-bold text-slate-950">{o.name}</div>
-                    <div className="truncate text-xs text-slate-500">
+                    <div className="truncate text-sm font-bold text-content">{o.name}</div>
+                    <div className="truncate text-xs text-muted">
                       {o.email}{o.employee_code ? ` · ${o.employee_code}` : ''}
                     </div>
                   </div>
@@ -475,12 +475,12 @@ export default function AdminDashboard() {
         action={
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
               <input
                 value={officerQuery}
                 onChange={(e) => setOfficerQuery(e.target.value)}
                 placeholder="Search officers"
-                className="h-9 w-40 rounded-lg border border-slate-300 bg-white pl-8 pr-3 text-sm focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10"
+                className="h-9 w-40 rounded-lg border border-line bg-surface pl-8 pr-3 text-sm focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10"
               />
             </div>
             <Select value={officerSort} onChange={(e) => setOfficerSort(e.target.value)} className="w-32" aria-label="Sort officers">
@@ -492,12 +492,12 @@ export default function AdminDashboard() {
         }
       >
         {filteredOfficers.length === 0 ? (
-          <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No officers match your search.</p>
+          <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">No officers match your search.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs font-bold uppercase text-slate-500">
+                <tr className="border-b border-line text-xs font-bold uppercase text-muted">
                   <th className="pb-3">Officer</th>
                   <th className="pb-3 text-right">Cars</th>
                   <th className="pb-3 text-right">Months</th>
@@ -506,22 +506,22 @@ export default function AdminDashboard() {
                   <th className="pb-3 text-right">Payout</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-line">
                 {filteredOfficers.map((o) => (
                   <tr
                     key={o.id}
                     onClick={() => setSelectedOfficer(o)}
-                    className="cursor-pointer transition-colors hover:bg-slate-50"
+                    className="cursor-pointer transition-colors hover:bg-surface-soft"
                   >
                     <td className="py-3">
-                      <div className="font-bold text-slate-950">{o.name}</div>
-                      <div className="text-xs text-slate-500">{o.email}</div>
+                      <div className="font-bold text-content">{o.name}</div>
+                      <div className="text-xs text-muted">{o.email}</div>
                     </td>
                     <td className="py-3 text-right font-mono font-bold nums">{formatNumber(o.cars)}</td>
                     <td className="py-3 text-right nums">{formatNumber(o.submissions)}</td>
                     <td className="py-3 text-right nums">{formatNumber(o.avg_cars)}</td>
-                    <td className="py-3 text-slate-600">{o.last_active}</td>
-                    <td className="py-3 text-right font-mono font-bold text-slate-950 nums">{formatCurrency(o.total_payout)}</td>
+                    <td className="py-3 text-muted">{o.last_active}</td>
+                    <td className="py-3 text-right font-mono font-bold text-content nums">{formatCurrency(o.total_payout)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -536,12 +536,12 @@ export default function AdminDashboard() {
         icon={Clock3}
       >
         {recentEntries.length === 0 ? (
-          <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No submitted months yet.</p>
+          <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">No submitted months yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs font-bold uppercase text-slate-500">
+                <tr className="border-b border-line text-xs font-bold uppercase text-muted">
                   <th className="pb-3">Officer</th>
                   <th className="pb-3">Month</th>
                   <th className="pb-3 text-right">Cars</th>
@@ -549,19 +549,19 @@ export default function AdminDashboard() {
                   <th className="pb-3 text-right">Payout</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-line">
                 {recentEntries.map((entry) => (
-                  <tr key={entry.id} className="transition-colors hover:bg-slate-50">
+                  <tr key={entry.id} className="transition-colors hover:bg-surface-soft">
                     <td className="py-3">
-                      <div className="font-bold text-slate-950">{entry.officer}</div>
-                      <div className="text-xs text-slate-500">{entry.email}</div>
+                      <div className="font-bold text-content">{entry.officer}</div>
+                      <div className="text-xs text-muted">{entry.email}</div>
                     </td>
-                    <td className="py-3 font-semibold text-slate-700">{entry.label}</td>
+                    <td className="py-3 font-semibold text-content">{entry.label}</td>
                     <td className="py-3 text-right font-mono font-bold nums">{formatNumber(entry.cars)}</td>
                     <td className="py-3">
                       <Badge tone={entry.slab === 'No tier' ? 'neutral' : 'red'}>{entry.slab}</Badge>
                     </td>
-                    <td className="py-3 text-right font-mono font-bold text-slate-950 nums">
+                    <td className="py-3 text-right font-mono font-bold text-content nums">
                       {formatCurrency(entry.total_payout)}
                     </td>
                   </tr>
@@ -588,9 +588,9 @@ export default function AdminDashboard() {
               { label: 'Last active', value: selectedOfficer.last_active },
               { label: 'Employee code', value: selectedOfficer.employee_code || '—' },
             ].map((s) => (
-              <div key={s.label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                <div className="text-xs font-semibold text-slate-500">{s.label}</div>
-                <div className="mt-1 text-lg font-extrabold text-slate-950 nums">{s.value}</div>
+              <div key={s.label} className="rounded-xl border border-line bg-surface-soft px-3 py-3">
+                <div className="text-xs font-semibold text-muted">{s.label}</div>
+                <div className="mt-1 text-lg font-extrabold text-content nums">{s.value}</div>
               </div>
             ))}
           </div>

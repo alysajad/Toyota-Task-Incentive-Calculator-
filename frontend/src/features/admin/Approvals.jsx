@@ -76,7 +76,7 @@ export default function Approvals() {
             className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
               filter === f.key
                 ? 'bg-ink text-white'
-                : 'bg-white text-ink-500 ring-1 ring-sand-200 hover:bg-sand-50'
+                : 'bg-surface text-muted ring-1 ring-line hover:bg-surface-soft'
             }`}
           >
             {f.label}
@@ -123,15 +123,15 @@ export default function Approvals() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="truncate font-semibold text-ink">{fullName(o)}</h3>
+                        <h3 className="truncate font-semibold text-content">{fullName(o)}</h3>
                         <StatusBadge status={o.status} />
                       </div>
-                      <div className="mt-0.5 flex items-center gap-1 text-sm text-ink-400">
+                      <div className="mt-0.5 flex items-center gap-1 text-sm text-muted">
                         <Mail className="h-3.5 w-3.5" />
                         <span className="truncate">{o.email}</span>
                       </div>
                       {o.employee_code && (
-                        <div className="mt-0.5 font-mono text-xs text-ink-400 nums">
+                        <div className="mt-0.5 font-mono text-xs text-muted nums">
                           {o.employee_code}
                         </div>
                       )}

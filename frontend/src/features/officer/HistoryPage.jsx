@@ -59,7 +59,7 @@ export default function HistoryPage() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">Your saved monthly submissions and their calculated payouts.</p>
+        <p className="text-sm text-muted">Your saved monthly submissions and their calculated payouts.</p>
         <ExportMenu />
       </div>
       {entries.map((entry, i) => {
@@ -75,7 +75,7 @@ export default function HistoryPage() {
             <Card className="overflow-hidden">
               <button
                 onClick={() => setOpen(expanded ? null : entry.id)}
-                className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors duration-200 cursor-pointer hover:bg-slate-50"
+                className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors duration-200 cursor-pointer hover:bg-surface-soft"
               >
                 <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-950 text-white">
                   <span className="text-[10px] font-semibold uppercase leading-none text-white/60">
@@ -84,10 +84,10 @@ export default function HistoryPage() {
                   <span className="text-sm font-bold leading-none nums">{entry.year}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-slate-950">
+                  <div className="font-bold text-content">
                     {MONTHS[entry.month - 1]} {entry.year}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <div className="flex items-center gap-2 text-sm text-muted">
                     <span className="nums">{calc.total_cars ?? 0} cars</span>
                     {calc.slab && (
                       <Badge tone="neutral">
@@ -97,13 +97,13 @@ export default function HistoryPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-extrabold text-slate-950 nums">
+                  <div className="text-lg font-extrabold text-content nums">
                     {formatCurrency(calc.total_payout || 0)}
                   </div>
-                  <div className="text-xs text-slate-500">payout</div>
+                  <div className="text-xs text-muted">payout</div>
                 </div>
                 <ChevronRight
-                  className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`}
+                  className={`h-5 w-5 shrink-0 text-subtle transition-transform ${expanded ? 'rotate-90' : ''}`}
                 />
               </button>
 
@@ -111,23 +111,23 @@ export default function HistoryPage() {
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
-                  className="border-t border-slate-200 bg-slate-50 px-5 py-4"
+                  className="border-t border-line bg-surface-soft px-5 py-4"
                 >
                   {(calc.breakdown || []).filter((b) => b.cars_sold > 0).length === 0 ? (
-                    <p className="text-sm text-slate-500">No cars logged for this month.</p>
+                    <p className="text-sm text-muted">No cars logged for this month.</p>
                   ) : (
                     <div className="space-y-2">
                       {calc.breakdown
                         .filter((b) => b.cars_sold > 0)
                         .map((b) => (
                           <div key={b.car_model} className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-2 text-slate-700">
-                              <Car className="h-3.5 w-3.5 text-slate-400" />
+                            <span className="flex items-center gap-2 text-content">
+                              <Car className="h-3.5 w-3.5 text-subtle" />
                               {b.car_name}
                             </span>
                             <span className="flex items-center gap-3">
-                              <span className="text-slate-500 nums">×{b.cars_sold}</span>
-                              <span className="font-mono font-semibold text-slate-950 nums">
+                              <span className="text-muted nums">×{b.cars_sold}</span>
+                              <span className="font-mono font-semibold text-content nums">
                                 {formatCurrency(b.line_payout)}
                               </span>
                             </span>

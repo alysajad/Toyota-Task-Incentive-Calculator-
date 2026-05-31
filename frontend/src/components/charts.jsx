@@ -17,7 +17,7 @@ export function LineAreaChart({
   className,
 }) {
   if (!data?.length) {
-    return <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No chart data yet.</p>
+    return <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">No chart data yet.</p>
   }
 
   const values = data.map((item) => numeric(item[valueKey]))
@@ -54,7 +54,7 @@ export function LineAreaChart({
         {points.map((point) => (
           <g key={point.label}>
             <circle cx={point.x} cy={point.y} r="5" fill="#fff" stroke={color} strokeWidth="3" />
-            <text x={point.x} y={height - 4} textAnchor="middle" className="fill-slate-500 text-[10px] font-bold">
+            <text x={point.x} y={height - 4} textAnchor="middle" className="fill-muted text-[10px] font-bold">
               {String(point.label).split(' ')[0]}
             </text>
           </g>
@@ -62,9 +62,9 @@ export function LineAreaChart({
       </svg>
       <div className="grid gap-2 sm:grid-cols-3">
         {points.slice(-3).map((point) => (
-          <div key={point.label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <div className="truncate text-xs font-semibold text-slate-500">{point.label}</div>
-            <div className="mt-1 font-mono text-sm font-bold text-slate-950 nums">{formatValue(point.value)}</div>
+          <div key={point.label} className="rounded-lg border border-line bg-surface-soft px-3 py-2">
+            <div className="truncate text-xs font-semibold text-muted">{point.label}</div>
+            <div className="mt-1 font-mono text-sm font-bold text-content nums">{formatValue(point.value)}</div>
           </div>
         ))}
       </div>
@@ -83,7 +83,7 @@ export function DonutChart({
   const total = (data || []).reduce((sum, item) => sum + numeric(item[valueKey]), 0)
 
   if (!data?.length || total === 0) {
-    return <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No chart data yet.</p>
+    return <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">No chart data yet.</p>
   }
 
   const segments = data.reduce((acc, item, index) => {
@@ -99,9 +99,9 @@ export function DonutChart({
   return (
     <div className={cn('grid items-center gap-5 sm:grid-cols-[150px_1fr]', className)}>
       <div className="relative mx-auto h-36 w-36 rounded-full" style={{ background: `conic-gradient(${segments.join(', ')})` }}>
-        <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-white text-center">
-          <div className="font-mono text-xl font-extrabold text-slate-950 nums">{formatValue(total)}</div>
-          <div className="text-[11px] font-bold uppercase text-slate-500">{centerLabel}</div>
+        <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-surface text-center">
+          <div className="font-mono text-xl font-extrabold text-content nums">{formatValue(total)}</div>
+          <div className="text-[11px] font-bold uppercase text-muted">{centerLabel}</div>
         </div>
       </div>
       <div className="space-y-2">
@@ -115,9 +115,9 @@ export function DonutChart({
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: item.color || COLORS[index % COLORS.length] }}
                 />
-                <span className="truncate font-semibold text-slate-700">{item[labelKey]}</span>
+                <span className="truncate font-semibold text-content">{item[labelKey]}</span>
               </span>
-              <span className="shrink-0 font-mono font-bold text-slate-950 nums">
+              <span className="shrink-0 font-mono font-bold text-content nums">
                 {formatValue(value)} · {pct}%
               </span>
             </div>
@@ -140,7 +140,7 @@ export function HorizontalBarChart({
   const max = Math.max(...(data || []).map((item) => numeric(item[valueKey])), 1)
 
   if (!data?.length) {
-    return <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">{empty}</p>
+    return <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">{empty}</p>
   }
 
   return (
@@ -151,16 +151,16 @@ export function HorizontalBarChart({
         return (
           <div key={`${item[labelKey]}-${index}`}>
             <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-              <span className="min-w-0 truncate font-semibold text-slate-800">{item[labelKey]}</span>
-              <span className="shrink-0 font-mono font-bold text-slate-950 nums">{formatValue(value)}</span>
+              <span className="min-w-0 truncate font-semibold text-content">{item[labelKey]}</span>
+              <span className="shrink-0 font-mono font-bold text-content nums">{formatValue(value)}</span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2.5 overflow-hidden rounded-full bg-surface-inset">
               <div
                 className="h-full rounded-full"
                 style={{ width: `${width}%`, backgroundColor: COLORS[index % COLORS.length] }}
               />
             </div>
-            {detail && <div className="mt-1 text-xs text-slate-500">{detail(item)}</div>}
+            {detail && <div className="mt-1 text-xs text-muted">{detail(item)}</div>}
           </div>
         )
       })}
@@ -177,12 +177,12 @@ export function StackedBarChart({
   const total = (data || []).reduce((sum, item) => sum + numeric(item[valueKey]), 0)
 
   if (!data?.length || total === 0) {
-    return <p className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-500">No chart data yet.</p>
+    return <p className="rounded-xl bg-surface-soft py-8 text-center text-sm text-muted">No chart data yet.</p>
   }
 
   return (
     <div className="space-y-3">
-      <div className="flex h-4 overflow-hidden rounded-full bg-slate-100">
+      <div className="flex h-4 overflow-hidden rounded-full bg-surface-inset">
         {data.map((item, index) => {
           const value = numeric(item[valueKey])
           return (
@@ -199,15 +199,15 @@ export function StackedBarChart({
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
         {data.map((item, index) => (
-          <div key={`${item[labelKey]}-legend-${index}`} className="rounded-lg bg-slate-50 px-3 py-2">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+          <div key={`${item[labelKey]}-legend-${index}`} className="rounded-lg bg-surface-soft px-3 py-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: item.color || COLORS[index % COLORS.length] }}
               />
               {item[labelKey]}
             </div>
-            <div className="mt-1 font-mono text-sm font-bold text-slate-950 nums">{formatValue(item[valueKey])}</div>
+            <div className="mt-1 font-mono text-sm font-bold text-content nums">{formatValue(item[valueKey])}</div>
           </div>
         ))}
       </div>

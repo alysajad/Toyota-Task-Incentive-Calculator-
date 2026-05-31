@@ -4,7 +4,7 @@ import { Spinner } from '../components/ui'
 
 function FullScreenLoader() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-sand-100">
+    <div className="flex min-h-screen items-center justify-center bg-surface-inset">
       <Spinner className="h-7 w-7" />
     </div>
   )

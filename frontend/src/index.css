@@ -8,6 +8,36 @@
   color-scheme: light;
   --toyota-red: #eb0a1e;
   --slate-ink: #0f172a;
+
+  /* Semantic neutral tokens (space-separated RGB for Tailwind's rgb(var()/<a>)). */
+  --surface: 255 255 255;
+  --surface-soft: 248 250 252;
+  --surface-inset: 241 245 249;
+  --line: 226 232 240;
+  --content: 2 6 23;
+  --muted: 100 116 139;
+  --subtle: 148 163 184;
+
+  --app-bg-top: 248 250 252;
+  --app-bg-bottom: 241 245 249;
+  --scroll-track: #f1f5f9;
+  --scroll-thumb: #cbd5e1;
+}
+
+.dark {
+  color-scheme: dark;
+  --surface: 17 24 39;
+  --surface-soft: 13 17 32;
+  --surface-inset: 26 34 56;
+  --line: 36 49 80;
+  --content: 241 245 249;
+  --muted: 148 163 184;
+  --subtle: 100 116 139;
+
+  --app-bg-top: 6 9 18;
+  --app-bg-bottom: 10 13 24;
+  --scroll-track: #0d1120;
+  --scroll-thumb: #243150;
 }
 
 html,
@@ -18,12 +48,11 @@ body,
 
 body {
   margin: 0;
-  color: var(--slate-ink);
+  color: rgb(var(--content));
   font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15px;
   background:
-    linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.96)),
-    #f8fafc;
+    linear-gradient(180deg, rgb(var(--app-bg-top)), rgb(var(--app-bg-bottom)));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -106,12 +135,12 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--scroll-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border: 2px solid #f1f5f9;
+  background: var(--scroll-thumb);
+  border: 2px solid var(--scroll-track);
   border-radius: 999px;
 }
 
@@ -121,7 +150,7 @@ textarea {
 
 ::selection {
   background: rgba(235, 10, 30, 0.18);
-  color: #0f172a;
+  color: rgb(var(--content));
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -36,7 +36,7 @@ const YEARS = [NOW.getFullYear() - 1, NOW.getFullYear(), NOW.getFullYear() + 1]
 
 function MetricTile({ icon: Icon, label, value, caption, tone = 'slate' }) {
   const tones = {
-    slate: 'bg-slate-100 text-slate-700',
+    slate: 'bg-surface-inset text-content',
     red: 'bg-toyota-50 text-toyota',
     green: 'bg-emerald-50 text-emerald-700',
     blue: 'bg-blue-50 text-blue-700',
@@ -47,9 +47,9 @@ function MetricTile({ icon: Icon, label, value, caption, tone = 'slate' }) {
       <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tones[tone]}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="mt-4 text-2xl font-extrabold text-slate-950 nums">{value}</div>
-      <div className="mt-1 text-sm font-bold text-slate-800">{label}</div>
-      {caption && <div className="mt-1 text-xs leading-5 text-slate-500">{caption}</div>}
+      <div className="mt-4 text-2xl font-extrabold text-content nums">{value}</div>
+      <div className="mt-1 text-sm font-bold text-content">{label}</div>
+      {caption && <div className="mt-1 text-xs leading-5 text-muted">{caption}</div>}
     </Card>
   )
 }
@@ -58,10 +58,10 @@ function AnalyticsPanel({ title, subtitle, icon: Icon, children }) {
   return (
     <Card className="p-5">
       <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-slate-500" />
+        <Icon className="h-4 w-4 text-muted" />
         <div>
-          <h3 className="font-bold text-slate-950">{title}</h3>
-          {subtitle && <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p>}
+          <h3 className="font-bold text-content">{title}</h3>
+          {subtitle && <p className="mt-1 text-xs leading-5 text-muted">{subtitle}</p>}
         </div>
       </div>
       {children}
@@ -220,7 +220,7 @@ export default function OfficerDashboard() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-extrabold text-slate-950">My performance</h2>
+            <h2 className="text-base font-extrabold text-content">My performance</h2>
             <TrendChip
               direction={officerSummary.mom_direction}
               pct={officerSummary.mom_pct}
@@ -243,13 +243,13 @@ export default function OfficerDashboard() {
               </span>
             )}
             {officerSummary.pace_pct != null && officerCurrent.cars > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+              <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-soft px-2.5 py-0.5 text-[11px] font-bold text-muted">
                 <TrendingUp className="h-3 w-3" />
                 {officerSummary.pace_pct >= 0 ? '+' : ''}{officerSummary.pace_pct}% vs your avg
               </span>
             )}
             {officerSummary.ytd_payout != null && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+              <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-soft px-2.5 py-0.5 text-[11px] font-bold text-muted">
                 {officerSummary.ytd_year} YTD · {formatCurrency(officerSummary.ytd_payout)} · {formatNumber(officerSummary.ytd_cars)} cars
               </span>
             )}
@@ -345,11 +345,11 @@ export default function OfficerDashboard() {
       {/* Left: inputs */}
       <div className="space-y-4">
         <Card className="overflow-hidden">
-          <div className="border-b border-slate-200 bg-white px-5 py-4">
+          <div className="border-b border-line bg-surface px-5 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-lg font-extrabold text-slate-950">Log monthly sales</h2>
-              <p className="mt-1 text-sm text-slate-500">Enter cars sold per model. The payout updates live.</p>
+              <h2 className="text-lg font-extrabold text-content">Log monthly sales</h2>
+              <p className="mt-1 text-sm text-muted">Enter cars sold per model. The payout updates live.</p>
             </div>
             <div className="flex gap-2">
               <Select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-36">
@@ -384,21 +384,21 @@ export default function OfficerDashboard() {
                   <div
                     key={car.id}
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors duration-200 ${
-                      val > 0 ? 'border-toyota/30 bg-toyota-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                      val > 0 ? 'border-toyota/30 bg-toyota-50' : 'border-line bg-surface hover:border-line'
                     }`}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-inset text-content">
                       <Car className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-bold text-slate-950">{car.model_name}</div>
-                      {car.variant && <div className="truncate text-xs text-slate-500">{car.variant}</div>}
+                      <div className="truncate text-sm font-bold text-content">{car.model_name}</div>
+                      {car.variant && <div className="truncate text-xs text-muted">{car.variant}</div>}
                     </div>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => bump(car.id, -1)}
                         disabled={val <= 0}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-200 cursor-pointer hover:border-slate-400 hover:text-slate-950 disabled:pointer-events-none disabled:opacity-40"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted transition-colors duration-200 cursor-pointer hover:border-line hover:text-content disabled:pointer-events-none disabled:opacity-40"
                         aria-label="Decrease"
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -409,11 +409,11 @@ export default function OfficerDashboard() {
                         value={volumes[car.id] ?? ''}
                         onChange={(e) => setVolume(car.id, e.target.value)}
                         placeholder="0"
-                        className="nums h-9 w-14 rounded-lg border border-slate-300 bg-white text-center text-sm font-semibold text-slate-950 focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10"
+                        className="nums h-9 w-14 rounded-lg border border-line bg-surface text-center text-sm font-semibold text-content focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10"
                       />
                       <button
                         onClick={() => bump(car.id, 1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-200 cursor-pointer hover:border-toyota hover:text-toyota"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted transition-colors duration-200 cursor-pointer hover:border-toyota hover:text-toyota"
                         aria-label="Increase"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -429,7 +429,7 @@ export default function OfficerDashboard() {
         {/* Tier ladder reference */}
         {slabs.length > 0 && (
           <Card className="p-5">
-            <h3 className="mb-3 text-xs font-bold uppercase text-slate-500">
+            <h3 className="mb-3 text-xs font-bold uppercase text-muted">
               Incentive ladder
             </h3>
             <div className="space-y-1.5">
@@ -440,12 +440,12 @@ export default function OfficerDashboard() {
                     key={s.id}
                     animate={{ scale: hit ? 1 : 1 }}
                     className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
-                      hit ? 'bg-slate-950 text-white shadow-sm' : 'bg-slate-50 text-slate-600'
+                      hit ? 'bg-slate-950 text-white shadow-sm' : 'bg-surface-soft text-muted'
                     }`}
                   >
                     <span className="flex items-center gap-2">
                       <span className="font-mono font-semibold nums">{s.label}</span>
-                      <span className={hit ? 'text-white/60' : 'text-slate-500'}>cars</span>
+                      <span className={hit ? 'text-white/60' : 'text-muted'}>cars</span>
                       {hit && <Badge tone="red">current tier</Badge>}
                     </span>
                     <span className="nums font-mono font-semibold">
@@ -464,7 +464,7 @@ export default function OfficerDashboard() {
         <Card className="overflow-hidden bg-slate-950 text-white shadow-float">
           <div className="dash-grid border-b border-white/10 px-5 py-4">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-xs font-bold uppercase text-slate-500">
+              <span className="flex items-center gap-2 text-xs font-bold uppercase text-muted">
                 <Wallet className="h-3.5 w-3.5" />
                 Projected payout
               </span>
@@ -474,7 +474,7 @@ export default function OfficerDashboard() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-xs text-slate-500"
+                    className="text-xs text-muted"
                   >
                     updating…
                   </motion.span>
@@ -493,9 +493,9 @@ export default function OfficerDashboard() {
             <div className="mt-3 flex items-center gap-4 text-sm">
               <div>
                 <div className="font-display text-xl font-bold nums">{totalCars}</div>
-                <div className="text-xs text-slate-500">cars sold</div>
+                <div className="text-xs text-muted">cars sold</div>
               </div>
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-8 w-px bg-surface/10" />
               <div>
                 {matchedLabel ? (
                   <>
@@ -506,8 +506,8 @@ export default function OfficerDashboard() {
                   </>
                 ) : (
                   <>
-                    <div className="text-xl font-bold text-slate-600">—</div>
-                    <div className="text-xs text-slate-500">no tier yet</div>
+                    <div className="text-xl font-bold text-muted">—</div>
+                    <div className="text-xs text-muted">no tier yet</div>
                   </>
                 )}
               </div>
@@ -517,7 +517,7 @@ export default function OfficerDashboard() {
           {/* Status / breakdown */}
           <div className="px-5 py-4">
             {totalCars === 0 ? (
-              <div className="flex items-start gap-2 text-sm text-slate-400">
+              <div className="flex items-start gap-2 text-sm text-subtle">
                 <Info className="mt-0.5 h-4 w-4 shrink-0" />
                 Add some cars to see your projected incentive for the month.
               </div>
@@ -528,7 +528,7 @@ export default function OfficerDashboard() {
               </div>
             ) : (
               <>
-                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-slate-500">
+                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-muted">
                   <TrendingUp className="h-3.5 w-3.5" />
                   Per-model breakdown
                 </div>

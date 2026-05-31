@@ -39,10 +39,10 @@ export default function LoginPage() {
         <div className="mb-2 text-xs font-bold uppercase text-toyota">
           Secure sign in
         </div>
-        <h2 className="text-3xl font-extrabold text-slate-950">
+        <h2 className="text-3xl font-extrabold text-content">
           Welcome back
         </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-muted">
           Enter your approved account details to continue.
         </p>
       </div>
@@ -96,7 +96,7 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-muted">
         New sales officer?{' '}
         <Link to="/register" className="font-semibold text-toyota hover:text-toyota-700">
           Request access
