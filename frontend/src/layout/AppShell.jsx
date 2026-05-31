@@ -141,12 +141,12 @@ export function AppShell({ nav }) {
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12">
+        <main className="mx-auto max-w-7xl px-4 pb-[calc(7rem_+_env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:px-8 lg:pb-12">
           <Outlet />
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 shadow-[0_-12px_30px_-24px_rgba(15,23,42,0.5)] backdrop-blur-xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_30px_-24px_rgba(15,23,42,0.5)] backdrop-blur-xl lg:hidden">
         {nav.map((item) => (
           <TabItem key={item.to} {...item} />
         ))}
