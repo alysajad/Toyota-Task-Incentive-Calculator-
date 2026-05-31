@@ -377,7 +377,7 @@ export default function OfficerDashboard() {
                   <div
                     key={car.id}
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors duration-200 ${
-                      val > 0 ? 'border-toyota/30 bg-toyota-50' : 'border-line bg-surface hover:border-line'
+                      val > 0 ? 'border-accent-line bg-accent-soft' : 'border-line bg-surface hover:border-line'
                     }`}
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-inset text-content">

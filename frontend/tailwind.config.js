@@ -16,6 +16,8 @@ export default {
         content: 'rgb(var(--content) / <alpha-value>)',
         muted: 'rgb(var(--muted) / <alpha-value>)',
         subtle: 'rgb(var(--subtle) / <alpha-value>)',
+        'accent-soft': 'rgb(var(--accent-soft) / <alpha-value>)',
+        'accent-line': 'rgb(var(--accent-line) / <alpha-value>)',
         toyota: {
           DEFAULT: '#eb0a1e',
           50: '#fef2f3',

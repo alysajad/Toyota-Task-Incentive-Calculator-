@@ -19,3 +19,9 @@ frontend/.vite/
 .idea/
 .DS_Store
 *.log
+
+# --- Local screenshots / image scratch (app assets live in frontend/public/) ---
+WhatsApp Image*
+*.jpeg
+*.jpg
+!frontend/public/**

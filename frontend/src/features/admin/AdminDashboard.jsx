@@ -73,7 +73,7 @@ function AnalyticsCard({ label, value, caption, icon: Icon, tone = 'slate', to }
 function Panel({ title, subtitle, icon: Icon, action, children, className }) {
   return (
     <Card className={`p-5 ${className || ''}`}>
-      <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             {Icon && <Icon className="h-4 w-4 text-muted" />}
@@ -81,7 +81,7 @@ function Panel({ title, subtitle, icon: Icon, action, children, className }) {
           </div>
           {subtitle && <p className="mt-1 text-xs leading-5 text-muted">{subtitle}</p>}
         </div>
-        {action}
+        {action && <div className="shrink-0">{action}</div>}
       </div>
       {children}
     </Card>
@@ -473,17 +473,17 @@ export default function AdminDashboard() {
         subtitle="Search, sort, and open any officer for detail"
         icon={Users}
         action={
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
               <input
                 value={officerQuery}
                 onChange={(e) => setOfficerQuery(e.target.value)}
                 placeholder="Search officers"
-                className="h-9 w-40 rounded-lg border border-line bg-surface pl-8 pr-3 text-sm focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10"
+                className="h-9 w-full rounded-lg border border-line bg-surface pl-8 pr-3 text-sm focus:border-toyota focus:outline-none focus:ring-4 focus:ring-toyota/10 sm:w-40"
               />
             </div>
-            <Select value={officerSort} onChange={(e) => setOfficerSort(e.target.value)} className="w-32" aria-label="Sort officers">
+            <Select value={officerSort} onChange={(e) => setOfficerSort(e.target.value)} className="w-32 shrink-0" aria-label="Sort officers">
               <option value="payout">By payout</option>
               <option value="cars">By cars</option>
               <option value="name">By name</option>

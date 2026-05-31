@@ -18,6 +18,10 @@
   --muted: 100 116 139;
   --subtle: 148 163 184;
 
+  /* Brand-tinted "selected" surface — flips with the theme so text stays legible. */
+  --accent-soft: 254 242 243;
+  --accent-line: 247 169 176;
+
   --app-bg-top: 248 250 252;
   --app-bg-bottom: 241 245 249;
   --scroll-track: #f1f5f9;
@@ -33,6 +37,9 @@
   --content: 241 245 249;
   --muted: 148 163 184;
   --subtle: 100 116 139;
+
+  --accent-soft: 42 22 32;
+  --accent-line: 145 11 22;
 
   --app-bg-top: 6 9 18;
   --app-bg-bottom: 10 13 24;
