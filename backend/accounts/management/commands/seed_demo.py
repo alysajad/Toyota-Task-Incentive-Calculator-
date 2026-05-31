@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from accounts.models import AccountStatus, DemoCredential, Role
+from accounts.models import AccountStatus, Role
 from incentives.models import IncentiveSlab
 from inventory.models import CarModel
 from sales.models import MonthlySalesEntry, SalesLine
@@ -64,7 +64,7 @@ class Command(BaseCommand):
         self._seed_cars()
         self._seed_slabs()
         officers = self._seed_officers()
-        demo_officer = self._seed_demo_credentials(admin, officers)
+        demo_officer = self._resolve_demo_officer(officers)
         self._seed_prefilled_month(officers[0])
 
         self.stdout.write(self.style.SUCCESS("\nDemo data seeded successfully.\n"))
@@ -149,8 +149,9 @@ class Command(BaseCommand):
         self.stdout.write(f"  officers: {len(created)} (2 approved, 1 pending)")
         return created
 
-    def _seed_demo_credentials(self, admin, officers):
-        demo_officer = next(
+    def _resolve_demo_officer(self, officers):
+        """Pick the officer whose login we document for evaluators."""
+        return next(
             (
                 officer
                 for officer in officers
@@ -159,26 +160,6 @@ class Command(BaseCommand):
             ),
             officers[0],
         )
-        DemoCredential.objects.update_or_create(
-            user=admin,
-            defaults={
-                "label": "Administrator",
-                "display_password": settings.DEMO_ADMIN_PASSWORD,
-                "is_active": True,
-                "sort_order": 1,
-            },
-        )
-        DemoCredential.objects.update_or_create(
-            user=demo_officer,
-            defaults={
-                "label": "Sales Officer",
-                "display_password": settings.DEMO_OFFICER_PASSWORD,
-                "is_active": True,
-                "sort_order": 2,
-            },
-        )
-        self.stdout.write("  demo credentials: admin + sales officer")
-        return demo_officer
 
     def _seed_prefilled_month(self, officer):
         today = date.today()

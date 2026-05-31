@@ -28,10 +28,16 @@ services:
         fromDatabase:
           name: nippon-incentive-db
           property: connectionString
+      # Demo logins for evaluators. These match the README "Demo credentials"
+      # table so the deployed app accepts the documented logins. They are
+      # seeded as password hashes and never exposed by the API. Change them
+      # (and update the README) for a private deployment.
       - key: DEMO_ADMIN_EMAIL
         value: admin@nippon.test
       - key: DEMO_ADMIN_PASSWORD
-        generateValue: true # printed in the seed_demo build log
+        value: Admin@12345
+      - key: DEMO_OFFICER_PASSWORD
+        value: Officer@12345
 
 databases:
   - name: nippon-incentive-db

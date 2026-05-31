@@ -223,8 +223,9 @@ CORS_ALLOWED_ORIGINS = env_list(
 )
 CORS_ALLOW_CREDENTIALS = True
 
-# Admin seed defaults (overridable via env / seed command flags).
-DEMO_CREDENTIALS_ENABLED = env_bool("DEMO_CREDENTIALS_ENABLED", True)
+# Seed-account defaults used by `manage.py seed_demo` (overridable via env).
+# These passwords are applied as Django hashes to the seeded demo users; they
+# are never exposed by the API — share them with evaluators out-of-band (README).
 DEMO_ADMIN_EMAIL = env("DEMO_ADMIN_EMAIL", "admin@nippon.test")
 DEMO_ADMIN_PASSWORD = env("DEMO_ADMIN_PASSWORD", "Admin@12345")
 DEMO_OFFICER_EMAIL = env("DEMO_OFFICER_EMAIL", "ravi.officer@nippon.test")

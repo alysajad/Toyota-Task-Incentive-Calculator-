@@ -194,7 +194,7 @@ Production can use Redis by setting `CACHE_URL`; local development falls back to
 - JWT: short-lived access (15 min) + refresh (7 days) with rotation; role embedded in claims.
 - DRF permission classes (`IsAdmin`, `IsApprovedSalesOfficer`, `IsAdminOrReadOnly`) enforce RBAC server-side on every endpoint. Officers' sales querysets are filtered to `request.user` — they can never read/write another officer's data.
 - Passwords hashed with Django's PBKDF2 + min-length/common-password validators.
-- Login-page demo credentials are fetched from database-backed helper rows and returned only when the linked Supabase user is active, approved, and the displayed password authenticates against the user's password hash. Set `DEMO_CREDENTIALS_ENABLED=False` to hide the helper in a private deployment.
+- Demo logins are **seeded as normal password-hashed users** and documented in the [Demo credentials](#-demo-credentials) table — the app never serves plaintext passwords or a public credential endpoint. Share them with evaluators out-of-band; override `DEMO_ADMIN_PASSWORD` / `DEMO_OFFICER_PASSWORD` for a private deployment.
 - `DEBUG=False`, HSTS, secure cookies, and SSL redirect in production settings.
 - CORS locked to the configured frontend origin in production; `SECRET_KEY`, `DATABASE_URL`, hosts, and CORS all come from env vars (never committed).
 
@@ -211,7 +211,7 @@ The **access token is held in memory** (`sessionStorage`, cleared on tab close) 
 3. After the first deploy, set:
    - `ALLOWED_HOSTS` → your Render host (e.g. `nippon-incentive-api.onrender.com`)
    - `CORS_ALLOWED_ORIGINS` → your Vercel URL (e.g. `https://your-app.vercel.app`)
-   - `DEMO_ADMIN_PASSWORD` and `DEMO_OFFICER_PASSWORD` if you want to override the visible demo logins.
+   - `DEMO_ADMIN_PASSWORD` and `DEMO_OFFICER_PASSWORD` if you want to override the seeded demo logins.
 
 ### SPA → Vercel
 1. Vercel → **New Project** → import the repo, set **Root Directory** to `frontend`.

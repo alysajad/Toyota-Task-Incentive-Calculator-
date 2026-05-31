@@ -135,25 +135,3 @@ class User(AbstractUser):
     def reject(self):
         self.status = AccountStatus.REJECTED
         self.save(update_fields=["status"])
-
-
-class DemoCredential(models.Model):
-    """Public demo login helper tied to a real, password-hashed user."""
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="demo_credential",
-    )
-    label = models.CharField(max_length=80)
-    display_password = models.CharField(max_length=128)
-    is_active = models.BooleanField(default=True)
-    sort_order = models.PositiveSmallIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["sort_order", "id"]
-
-    def __str__(self):
-        return f"{self.label} ({self.user.email})"
