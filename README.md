@@ -95,6 +95,127 @@ flowchart TD
 
 ---
 
+## 🗄 Database schema
+
+The application persists to **PostgreSQL** (Supabase in production, SQLite in dev). The entity-relationship diagram below mirrors the Supabase schema visualizer — every table, column, type and foreign-key connection — centred on the custom `accounts_user` (RBAC + approval state), `inventory_carmodel`, `incentives_incentiveslab`, and the sales pipeline (`sales_monthlysalesentry` → `sales_salesline` → `inventory_carmodel`), alongside Django's auth/admin/session bookkeeping tables.
+
+```mermaid
+erDiagram
+    accounts_user ||--o{ accounts_user_groups : "user_id"
+    accounts_user ||--o{ accounts_user_user_permissions : "user_id"
+    accounts_user ||--o{ django_admin_log : "user_id"
+    accounts_user ||--o{ sales_monthlysalesentry : "sales_officer_id"
+    auth_group ||--o{ accounts_user_groups : "group_id"
+    auth_group ||--o{ auth_group_permissions : "group_id"
+    auth_permission ||--o{ accounts_user_user_permissions : "permission_id"
+    auth_permission ||--o{ auth_group_permissions : "permission_id"
+    django_content_type ||--o{ auth_permission : "content_type_id"
+    django_content_type ||--o{ django_admin_log : "content_type_id"
+    inventory_carmodel ||--o{ sales_salesline : "car_model_id"
+    sales_monthlysalesentry ||--o{ sales_salesline : "entry_id"
+
+    accounts_user {
+        int8 id PK
+        varchar password
+        timestamptz last_login
+        bool is_superuser
+        varchar username
+        varchar first_name
+        varchar last_name
+        bool is_staff
+        bool is_active
+        timestamptz date_joined
+        varchar email
+        varchar role
+        varchar status
+        varchar employee_code
+    }
+    inventory_carmodel {
+        int8 id PK
+        varchar model_name
+        varchar base_suffix
+        varchar variant
+        bool is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    incentives_incentiveslab {
+        int8 id PK
+        int4 min_cars
+        int4 max_cars
+        numeric rate_per_car
+    }
+    sales_monthlysalesentry {
+        int8 id PK
+        int2 month
+        int4 year
+        timestamptz created_at
+        timestamptz updated_at
+        int8 sales_officer_id FK
+    }
+    sales_salesline {
+        int8 id PK
+        int4 cars_sold
+        int8 car_model_id FK
+        int8 entry_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    auth_group {
+        int4 id PK
+        varchar name
+    }
+    auth_permission {
+        int4 id PK
+        varchar name
+        int4 content_type_id FK
+        varchar codename
+    }
+    auth_group_permissions {
+        int8 id PK
+        int4 group_id FK
+        int4 permission_id FK
+    }
+    accounts_user_groups {
+        int8 id PK
+        int8 user_id FK
+        int4 group_id FK
+    }
+    accounts_user_user_permissions {
+        int8 id PK
+        int8 user_id FK
+        int4 permission_id FK
+    }
+    django_content_type {
+        int4 id PK
+        varchar app_label
+        varchar model
+    }
+    django_admin_log {
+        int4 id PK
+        timestamptz action_time
+        text object_id
+        varchar object_repr
+        int2 action_flag
+        text change_message
+        int4 content_type_id FK
+        int8 user_id FK
+    }
+    django_migrations {
+        int8 id PK
+        varchar app
+        varchar name
+        timestamptz applied
+    }
+    django_session {
+        varchar session_key PK
+        text session_data
+        timestamptz expire_date
+    }
+```
+
+---
+
 ## 📁 Repository structure
 
 ```
