@@ -47,6 +47,54 @@ Sign in with the [demo credentials](#-demo-credentials). The free API is kept wa
 
 ---
 
+## 🏗 System design
+
+One React SPA talks to one Django REST service over HTTPS with JWT; the service is split into small domain apps around a **pure, side-effect-free incentive engine**, and reaches out to Postgres and Redis as external services.
+
+```mermaid
+flowchart TD
+    subgraph client["👤 Admin / Sales-Officer browser"]
+        spa["React 19 SPA · Vite · Tailwind · Framer Motion<br/>login · cars · slabs · sales entry · analytics · CSV<br/><i>served from Cloudflare Workers</i>"]
+    end
+
+    spa -->|"HTTPS + JWT<br/>(access in memory · refresh in localStorage)"| auth
+
+    subgraph api["▲ Django 5.2 + DRF — single service (Render)"]
+        auth["Auth &amp; RBAC<br/>accounts · SimpleJWT<br/>approval state machine + role gates<br/>core/permissions.py"]
+        router["URL router<br/>/api/* · DRF routers + views"]
+        auth --> router
+
+        inventory["Inventory<br/>inventory/ · CarModel CRUD"]
+        incentives["Incentive slabs<br/>incentives/ · IncentiveSlab<br/>validate_slab_set (no gaps/overlaps)"]
+        sales["Sales pipeline<br/>sales/ · MonthlySalesEntry · /calculate/<br/>analytics.py · exports.py (CSV)"]
+        engine{{"Slab engine<br/>incentives/engine.py<br/>calculate_incentive (pure · unit-tested)"}}
+        cache["Versioned cache layer<br/>core/cache.py"]
+
+        router --> inventory
+        router --> incentives
+        router --> sales
+        sales --> engine
+        incentives --> engine
+        sales --> cache
+        inventory --> cache
+        incentives --> cache
+    end
+
+    inventory -->|"ORM / SQL"| db
+    incentives -->|"ORM / SQL"| db
+    sales -->|"ORM / SQL"| db
+    cache -->|"get / set · versioned keys"| redis
+
+    subgraph ext["☁ External services"]
+        db[("PostgreSQL — Supabase<br/>users · cars · slabs · sales<br/><i>SQLite fallback in dev</i>")]
+        redis[("Redis cache<br/><i>LocMem fallback in dev</i>")]
+    end
+```
+
+**Flow:** the SPA authenticates once (JWT access token kept in memory, refresh token in `localStorage`); every `/api/*` call is role-gated server-side. When an officer logs sales, the request hits the sales pipeline, which loads the active slab set and runs the **pure** `calculate_incentive` — the same function the live payout tracker, analytics, and CSV export all reuse — so the server is the single source of truth. Read paths are served through a portable **versioned cache** (Redis in prod, in-process LocMem in dev) that invalidates by bumping a scope version instead of backend-specific key scans.
+
+---
+
 ## 📁 Repository structure
 
 ```
